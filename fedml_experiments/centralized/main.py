@@ -134,7 +134,7 @@ def load_data(args, dataset_name):
         logging.info("load_data. dataset_name = %s" % dataset_name)
         client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_federated_emnist(args.dataset, args.data_dir)
+        class_num = load_partition_data_federated_emnist(args.dataset, args.main_data_dir)
         args.client_num_in_total = client_num
 
     elif dataset_name == "shakespeare":
@@ -148,54 +148,54 @@ def load_data(args, dataset_name):
         logging.info("load_data. dataset_name = %s" % dataset_name)
         client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_federated_shakespeare(args.dataset, args.data_dir)
+        class_num = load_partition_data_federated_shakespeare(args.dataset, args.main_data_dir)
         args.client_num_in_total = client_num
 
     elif dataset_name == "fed_cifar100":
         logging.info("load_data. dataset_name = %s" % dataset_name)
         client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_federated_cifar100(args.dataset, args.data_dir)
+        class_num = load_partition_data_federated_cifar100(args.dataset, args.main_data_dir)
         args.client_num_in_total = client_num
     elif dataset_name == "stackoverflow_lr":
         logging.info("load_data. dataset_name = %s" % dataset_name)
         client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_federated_stackoverflow_lr(args.dataset, args.data_dir)
+        class_num = load_partition_data_federated_stackoverflow_lr(args.dataset, args.main_data_dir)
         args.client_num_in_total = client_num
     elif dataset_name == "stackoverflow_nwp":
         logging.info("load_data. dataset_name = %s" % dataset_name)
         client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_federated_stackoverflow_nwp(args.dataset, args.data_dir)
+        class_num = load_partition_data_federated_stackoverflow_nwp(args.dataset, args.main_data_dir)
         args.client_num_in_total = client_num
     elif dataset_name in ["ILSVRC2012", "ILSVRC2012_hdf5"] :
         if args.data_parallel == 1:
             logging.info("load_data. dataset_name = %s" % dataset_name)
             train_data_num, test_data_num, train_data_global, test_data_global, \
             train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-            class_num = distributed_centralized_ImageNet_loader(dataset=dataset_name, data_dir=args.data_dir,
-                                                    world_size=args.world_size, 
-                                                    rank=args.rank, batch_size=args.batch_size)
+            class_num = distributed_centralized_ImageNet_loader(dataset=dataset_name, data_dir=args.main_data_dir,
+                                                                world_size=args.world_size,
+                                                                rank=args.rank, batch_size=args.batch_size)
 
         else:
             logging.info("load_data. dataset_name = %s" % dataset_name)
             train_data_num, test_data_num, train_data_global, test_data_global, \
             train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-            class_num = load_partition_data_ImageNet(dataset=dataset_name, data_dir=args.data_dir,
-                                                    partition_method=None, partition_alpha=None,
-                                                    client_number=args.client_num_in_total, batch_size=args.batch_size)
+            class_num = load_partition_data_ImageNet(dataset=dataset_name, data_dir=args.main_data_dir,
+                                                     partition_method=None, partition_alpha=None,
+                                                     client_number=args.client_num_in_total, batch_size=args.batch_size)
 
     elif dataset_name == "gld23k":
         logging.info("load_data. dataset_name = %s" % dataset_name)
         args.client_num_in_total = 233
-        fed_train_map_file = os.path.join(args.data_dir, 'data_user_dict/gld23k_user_dict_train.csv')
-        fed_test_map_file = os.path.join(args.data_dir, 'data_user_dict/gld23k_user_dict_test.csv')
-        args.data_dir = os.path.join(args.data_dir, 'images')
+        fed_train_map_file = os.path.join(args.main_data_dir, 'data_user_dict/gld23k_user_dict_train.csv')
+        fed_test_map_file = os.path.join(args.main_data_dir, 'data_user_dict/gld23k_user_dict_test.csv')
+        args.main_data_dir = os.path.join(args.main_data_dir, 'images')
 
         train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_landmarks(dataset=dataset_name, data_dir=args.data_dir,
+        class_num = load_partition_data_landmarks(dataset=dataset_name, data_dir=args.main_data_dir,
                                                   fed_train_map_file=fed_train_map_file,
                                                   fed_test_map_file=fed_test_map_file,
                                                   partition_method=None, partition_alpha=None,
@@ -204,13 +204,13 @@ def load_data(args, dataset_name):
     elif dataset_name == "gld160k":
         logging.info("load_data. dataset_name = %s" % dataset_name)
         args.client_num_in_total = 1262
-        fed_train_map_file = os.path.join(args.data_dir, 'data_user_dict/gld160k_user_dict_train.csv')
-        fed_test_map_file = os.path.join(args.data_dir, 'data_user_dict/gld160k_user_dict_test.csv')
-        args.data_dir = os.path.join(args.data_dir, 'images')
+        fed_train_map_file = os.path.join(args.main_data_dir, 'data_user_dict/gld160k_user_dict_train.csv')
+        fed_test_map_file = os.path.join(args.main_data_dir, 'data_user_dict/gld160k_user_dict_test.csv')
+        args.main_data_dir = os.path.join(args.main_data_dir, 'images')
 
         train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_landmarks(dataset=dataset_name, data_dir=args.data_dir,
+        class_num = load_partition_data_landmarks(dataset=dataset_name, data_dir=args.main_data_dir,
                                                   fed_train_map_file=fed_train_map_file,
                                                   fed_test_map_file=fed_test_map_file,
                                                   partition_method=None, partition_alpha=None,
@@ -229,7 +229,7 @@ def load_data(args, dataset_name):
 
         train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = data_loader(args.dataset, args.data_dir, args.partition_method,
+        class_num = data_loader(args.dataset, args.main_data_dir, args.partition_method,
                                 args.partition_alpha, args.client_num_in_total, args.batch_size)
     dataset = [train_data_num, test_data_num, train_data_global, test_data_global,
                train_data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num]
