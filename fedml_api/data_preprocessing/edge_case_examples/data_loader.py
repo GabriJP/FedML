@@ -40,10 +40,10 @@ def load_mnist_data(datadir):
     X_train, y_train = mnist_train_ds.data, mnist_train_ds.target
     X_test, y_test = mnist_test_ds.data, mnist_test_ds.target
 
-    X_train = X_train.data.numpy()
-    y_train = y_train.data.numpy()
-    X_test = X_test.data.numpy()
-    y_test = y_test.data.numpy()
+    X_train = X_train.main_data.numpy()
+    y_train = y_train.main_data.numpy()
+    X_test = X_test.main_data.numpy()
+    y_test = y_test.main_data.numpy()
 
     return (X_train, y_train, X_test, y_test)
 
@@ -57,10 +57,10 @@ def load_emnist_data(datadir):
     X_train, y_train = emnist_train_ds.data, emnist_train_ds.target
     X_test, y_test = emnist_test_ds.data, emnist_test_ds.target
 
-    X_train = X_train.data.numpy()
-    y_train = y_train.data.numpy()
-    X_test = X_test.data.numpy()
-    y_test = y_test.data.numpy()
+    X_train = X_train.main_data.numpy()
+    y_train = y_train.main_data.numpy()
+    X_test = X_test.main_data.numpy()
+    y_test = y_test.main_data.numpy()
 
     return (X_train, y_train, X_test, y_test)
 
@@ -291,7 +291,7 @@ def load_poisoned_dataset(args):
 
         with open("poisoned_dataset_fraction_{}".format(fraction), "rb") as saved_data_file:
             poisoned_dataset = torch.load(saved_data_file)
-        num_dps_poisoned_dataset = poisoned_dataset.data.shape[0]
+        num_dps_poisoned_dataset = poisoned_dataset.main_data.shape[0]
 
         # prepare EMNIST dataset
         emnist_train_dataset = datasets.EMNIST('./../../../data', split="digits", train=True, download=True,

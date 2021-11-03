@@ -225,16 +225,16 @@ class EMNIST_NormalCase_truncated(data.Dataset):
 
         if poison_type == "ardis":
             self.ardis_dataset_train = ardis_dataset_train
-            partition = np.array_split(np.arange(self.ardis_dataset_train.data.shape[0]),
+            partition = np.array_split(np.arange(self.ardis_dataset_train.main_data.shape[0]),
                                        int(self._num_users_hold_edge_data))
 
             if user_id in np.arange(self._num_users_hold_edge_data):
                 user_partition = partition[user_id]
-                self.saved_ardis_dataset_train = self.ardis_dataset_train.data[user_partition]
+                self.saved_ardis_dataset_train = self.ardis_dataset_train.main_data[user_partition]
                 self.saved_ardis_label_train = self.ardis_dataset_train.targets[user_partition]
             else:
                 user_partition = []
-                self.saved_ardis_dataset_train = self.ardis_dataset_train.data[user_partition]
+                self.saved_ardis_dataset_train = self.ardis_dataset_train.main_data[user_partition]
                 self.saved_ardis_label_train = self.ardis_dataset_train.targets[user_partition]
         else:
             NotImplementedError("Unsupported poison type for normal case attack ...")

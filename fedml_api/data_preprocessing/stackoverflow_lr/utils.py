@@ -1,7 +1,8 @@
-import numpy as np
-import os
-import json
 import collections
+import json
+import os
+
+import numpy as np
 
 DEFAULT_WORD_COUNT_FILE = 'stackoverflow.word_count'
 DEFAULT_TAG_COUNT_FILE = 'stackoverflow.tag_count'
@@ -14,12 +15,14 @@ This code follows the steps of preprocessing in tff stackoverflow dataset:
 https://github.com/google-research/federated/blob/master/utils/datasets/stackoverflow_lr_dataset.py
 '''
 
+
 def get_word_count_file(data_dir):
     # word_count_file_path 
     global word_count_file_path
     if word_count_file_path is None:
         word_count_file_path = os.path.join(data_dir, DEFAULT_WORD_COUNT_FILE)
     return word_count_file_path
+
 
 def get_tag_count_file(data_dir):
     # tag_count_file_path 
@@ -63,7 +66,6 @@ def get_tag_dict(data_dir):
 
 
 def preprocess_inputs(sentences, data_dir):
-
     sentences = [sentence.split(' ') for sentence in sentences]
     vocab_size = len(get_word_dict(data_dir))
 
@@ -84,10 +86,9 @@ def preprocess_inputs(sentences, data_dir):
 
 
 def preprocess_targets(tags, data_dir):
-
     tags = [tag.split('|') for tag in tags]
     tag_size = len(get_tag_dict(data_dir))
-    
+
     def tag_to_id(tag):
         tag_dict = get_tag_dict(data_dir)
         if tag in tag_dict:
@@ -99,13 +100,12 @@ def preprocess_targets(tags, data_dir):
         tag = [tag_to_id(t) for t in tag]
         onehot = np.zeros((len(tag), tag_size + 1))
         onehot[np.arange(len(tag)), tag] = 1
-        return np.sum(onehot, axis=0, dtype=np.float32)#[:tag_size]
+        return np.sum(onehot, axis=0, dtype=np.float32)  # [:tag_size]
 
     return [to_bag_of_words(tag) for tag in tags]
 
 
 def preprocess_input(sentence, data_dir):
-
     sentence = sentence.split(' ')
     vocab_size = len(get_word_dict(data_dir))
 
@@ -126,10 +126,9 @@ def preprocess_input(sentence, data_dir):
 
 
 def preprocess_target(tag, data_dir):
-
     tag = tag.split('|')
     tag_size = len(get_tag_dict(data_dir))
-    
+
     def tag_to_id(tag):
         tag_dict = get_tag_dict(data_dir)
         if tag in tag_dict:

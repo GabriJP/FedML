@@ -107,4 +107,3 @@ mal_behavior_feat = [
 ]
 
 all_feature_list = qualification_feat + loan_feat + debt_feat + repayment_feat + multi_acc_feat + mal_behavior_feat
-

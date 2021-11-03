@@ -2,6 +2,7 @@ import h5py
 
 import torch.utils.data as data
 
+
 class StackOverflowDataset(data.Dataset):
     """StackOverflow dataset"""
 
@@ -16,7 +17,7 @@ class StackOverflowDataset(data.Dataset):
             datast (string) : "train" or "test" denoting on train set or test set
             preprocess (dict of callable, optional) : Optional preprocessing, with key "input", "target"
         """
-        
+
         self._EXAMPLE = 'examples'
         self._TOKENS = 'tokens'
         self._TITLE = 'title'
@@ -33,18 +34,17 @@ class StackOverflowDataset(data.Dataset):
 
     def get_client_id_list(self):
         if self.datast == "train":
-            if StackOverflowDataset.__train_client_id_list is None:       
+            if StackOverflowDataset.__train_client_id_list is None:
                 with h5py.File(self.h5_path, 'r') as h5_file:
                     StackOverflowDataset.__train_client_id_list = list(h5_file[self._EXAMPLE].keys())
             return StackOverflowDataset.__train_client_id_list
         elif self.datast == "test":
-            if StackOverflowDataset.__test_client_id_list is None:       
+            if StackOverflowDataset.__test_client_id_list is None:
                 with h5py.File(self.h5_path, 'r') as h5_file:
                     StackOverflowDataset.__test_client_id_list = list(h5_file[self._EXAMPLE].keys())
-            return StackOverflowDataset.__test_client_id_list 
+            return StackOverflowDataset.__test_client_id_list
         else:
-            raise Exception ("Please specify either train or test set!") 
-
+            raise Exception("Please specify either train or test set!")
 
     def __len__(self):
         with h5py.File(self.h5_path, 'r') as h5_file:
@@ -64,4 +64,4 @@ class StackOverflowDataset(data.Dataset):
             if self.target_fn:
                 tag = self.target_fn(tag)
 
-        return (sample, tag)
+        return sample, tag

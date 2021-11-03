@@ -88,13 +88,10 @@ def determine_issue_year(df_loan):
 def digitize_columns(data_frame):
     print("[INFO] digitize columns")
 
-    data_frame = data_frame.replace({"target": target_map, "grade": grade_map, "emp_length": emp_length_map,
-                                     "home_ownership": home_ownership_map,
-                                     "verification_status": verification_status_map,
-                                     "term": term_map, "initial_list_status": initial_list_status_map,
-                                     "purpose": purpose_map, "application_type": application_type_map,
-                                     "disbursement_method": disbursement_method_map})
-    return data_frame
+    return data_frame.replace(dict(
+        target=target_map, grade=grade_map, emp_length=emp_length_map, home_ownership=home_ownership_map,
+        verification_status=verification_status_map, term=term_map, initial_list_status=initial_list_status_map,
+        purpose=purpose_map, application_type=application_type_map, disbursement_method=disbursement_method_map))
 
 
 def prepare_data(file_path):
@@ -143,23 +140,23 @@ def loan_load_two_party_data(data_dir):
     processed_loan_df = load_processed_data(data_dir)
     party_a_feat_list = qualification_feat + loan_feat
     party_b_feat_list = debt_feat + repayment_feat + multi_acc_feat + mal_behavior_feat
-    Xa, Xb, y = processed_loan_df[party_a_feat_list].values, processed_loan_df[party_b_feat_list].values, \
+    xa, xb, y = processed_loan_df[party_a_feat_list].values, processed_loan_df[party_b_feat_list].values, \
                 processed_loan_df['target'].values
 
     y = np.expand_dims(y, axis=1)
-    n_train = int(0.8 * Xa.shape[0])
+    n_train = int(0.8 * xa.shape[0])
     print("# of train samples:", n_train)
-    Xa_train, Xb_train = Xa[:n_train], Xb[:n_train]
-    Xa_test, Xb_test = Xa[n_train:], Xb[n_train:]
+    xa_train, xb_train = xa[:n_train], xb[:n_train]
+    xa_test, xb_test = xa[n_train:], xb[n_train:]
     y_train, y_test = y[:n_train], y[n_train:]
 
-    print("Xa_train.shape:", Xa_train.shape)
-    print("Xb_train.shape:", Xb_train.shape)
-    print("Xa_test.shape:", Xa_test.shape)
-    print("Xb_test.shape:", Xb_test.shape)
+    print("xa_train.shape:", xa_train.shape)
+    print("xb_train.shape:", xb_train.shape)
+    print("xa_test.shape:", xa_test.shape)
+    print("xb_test.shape:", xb_test.shape)
     print("y_train.shape:", y_train.shape)
     print("y_test.shape:", y_test.shape, type(y_test))
-    return [Xa_train, Xb_train, y_train], [Xa_test, Xb_test, y_test]
+    return [xa_train, xb_train, y_train], [xa_test, xb_test, y_test]
 
 
 def loan_load_three_party_data(data_dir):
@@ -168,26 +165,26 @@ def loan_load_three_party_data(data_dir):
     party_a_feat_list = qualification_feat + loan_feat
     party_b_feat_list = debt_feat + repayment_feat
     party_c_feat_list = multi_acc_feat + mal_behavior_feat
-    Xa, Xb, Xc, y = processed_loan_df[party_a_feat_list].values, processed_loan_df[party_b_feat_list].values, \
+    xa, xb, xc, y = processed_loan_df[party_a_feat_list].values, processed_loan_df[party_b_feat_list].values, \
                     processed_loan_df[party_c_feat_list].values, processed_loan_df['target'].values
 
     y = np.expand_dims(y, axis=1)
-    n_train = int(0.8 * Xa.shape[0])
-    Xa_train, Xb_train, Xc_train = Xa[:n_train], Xb[:n_train], Xc[:n_train]
-    Xa_test, Xb_test, Xc_test = Xa[n_train:], Xb[n_train:], Xc[n_train:]
+    n_train = int(0.8 * xa.shape[0])
+    xa_train, xb_train, xc_train = xa[:n_train], xb[:n_train], xc[:n_train]
+    xa_test, xb_test, xc_test = xa[n_train:], xb[n_train:], xc[n_train:]
     y_train, y_test = y[:n_train], y[n_train:]
 
-    print("Xa_train.shape:", Xa_train.shape)
-    print("Xb_train.shape:", Xb_train.shape)
-    print("Xc_train.shape:", Xc_train.shape)
-    print("Xa_test.shape:", Xa_test.shape)
-    print("Xb_test.shape:", Xb_test.shape)
-    print("Xc_test.shape:", Xc_test.shape)
+    print("xa_train.shape:", xa_train.shape)
+    print("xb_train.shape:", xb_train.shape)
+    print("xc_train.shape:", xc_train.shape)
+    print("xa_test.shape:", xa_test.shape)
+    print("xb_test.shape:", xb_test.shape)
+    print("xc_test.shape:", xc_test.shape)
     print("y_train.shape:", y_train.shape)
     print("y_test.shape:", y_test.shape)
-    return [Xa_train, Xb_train, Xc_train, y_train], [Xa_test, Xb_test, Xc_test, y_test]
+    return [xa_train, xb_train, xc_train, y_train], [xa_test, xb_test, xc_test, y_test]
 
 
 if __name__ == '__main__':
-    data_dir = "../../../data/lending_club_loan/"
-    loan_load_two_party_data(data_dir)
+    main_data_dir = "../../../data/lending_club_loan/"
+    loan_load_two_party_data(main_data_dir)

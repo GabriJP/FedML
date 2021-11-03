@@ -1,6 +1,7 @@
-import numpy as np
 import collections
 import os
+
+import numpy as np
 
 DEFAULT_WORD_COUNT_FILE = 'stackoverflow.word_count'
 word_count_file_path = None
@@ -24,15 +25,14 @@ def get_word_count_file(data_dir):
 
 
 def get_most_frequent_words(data_dir, vocab_size=10000):
-    frequent_words = []
     with open(get_word_count_file(data_dir), 'r') as f:
-        frequent_words = [next(f).split()[0] for i in range(vocab_size)]
+        frequent_words = [next(f).split()[0] for _ in range(vocab_size)]
     return frequent_words
 
 
 def get_word_dict(data_dir):
     global word_dict
-    if word_dict == None:
+    if word_dict is None:
         frequent_words = get_most_frequent_words(data_dir)
         words = [_pad] + frequent_words + [_bos] + [_eos]
         word_dict = collections.OrderedDict()
@@ -43,7 +43,7 @@ def get_word_dict(data_dir):
 
 def get_word_list(data_dir):
     global word_list
-    if word_list == None:
+    if word_list is None:
         word_dict = get_word_dict()
         word_list = list(word_dict.keys())
     return word_list
@@ -54,7 +54,6 @@ def id_to_word(idx):
 
 
 def tokenizer(sentence, data_dir, max_seq_len=20):
-
     truncated_sentences = sentence.split(' ')[:max_seq_len]
 
     def word_to_id(word, num_oov_buckets=1):
@@ -65,12 +64,12 @@ def tokenizer(sentence, data_dir, max_seq_len=20):
             return hash(word) % num_oov_buckets + len(word_dict)
 
     def to_ids(sentence, num_oov_buckets=1):
-        '''
-        map list of sentence to list of [idx..] and pad to max_seq_len + 1
+        """
+        Map list of sentence to list of [idx..] and pad to max_seq_len + 1
         Args:
             num_oov_buckets : The number of out of vocabulary buckets.
             max_seq_len: Integer determining shape of padded batches.
-        '''
+        """
         tokens = [word_to_id(token) for token in sentence]
         if len(tokens) < max_seq_len:
             tokens = tokens + [word_to_id(_eos)]

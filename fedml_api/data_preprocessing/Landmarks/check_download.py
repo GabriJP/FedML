@@ -1,4 +1,4 @@
-from data_loader import load_partition_data_landmarks
+from .data_loader import LandmarksDataLoader
 
 '''
     You can run with python check_download.py to check if you have all 
@@ -13,6 +13,7 @@ if __name__ == '__main__':
     fed_g160k_train_map_file = './cache/datasets/landmarks-user-160k/federated_train.csv'
     fed_g160k_map_file = './cache/datasets/landmarks-user-160k/test.csv'
 
+    # noinspection DuplicatedCode
     dataset_name = 'g160k'
 
     if dataset_name == 'g23k':
@@ -20,36 +21,23 @@ if __name__ == '__main__':
         fed_train_map_file = fed_g23k_train_map_file
         fed_test_map_file = fed_g23k_test_map_file
     elif dataset_name == 'g160k':
-        client_number = 1262 
+        client_number = 1262
         fed_train_map_file = fed_g160k_train_map_file
         fed_test_map_file = fed_g160k_map_file
+    else:
+        raise NotImplementedError
 
-    train_data_num, test_data_num, train_data_global, test_data_global, \
-        data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num = \
-        load_partition_data_landmarks(None, data_dir, fed_train_map_file, fed_test_map_file, 
-                            partition_method=None, partition_alpha=None, client_number=client_number, batch_size=10)
+    dl = LandmarksDataLoader(data_dir, 10, 10, client_number)
+    ds = dl.load_partition_data(fed_train_map_file, fed_test_map_file)
 
-    print(train_data_num, test_data_num, class_num)
-    print(data_local_num_dict)
+    print(ds.train_data_num, ds.test_data_num, ds.class_num)
+    print(ds.data_local_num_dict)
 
-    i = 0
-    for data, label in train_data_global:
+    for _, (data, label) in zip(range(5), ds.train_data_global):
         print(data)
         print(label)
-        i += 1
-        if i > 5:
-            break
     print("=============================\n")
 
-    flag = True
     for client_idx in range(client_number):
-        for i, (data, label) in enumerate(train_data_local_dict[client_idx]):
-            print("client_idx %d has %s-th data" % (client_idx, i))
-
-    # flag = True
-    # for client_idx in range(client_number):
-    #     for i, (data, label) in enumerate(test_data_local_dict[client_idx]):
-    #         print("client_idx %d has %s-th data" % (client_idx, i))
-
-
-
+        for i, (data, label) in enumerate(ds.train_data_local_dict[client_idx]):
+            print(f"client_idx {client_idx} has {i}-th data")

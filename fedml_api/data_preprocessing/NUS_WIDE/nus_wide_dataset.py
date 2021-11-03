@@ -7,7 +7,7 @@ from sklearn.preprocessing.data import StandardScaler
 
 def get_top_k_labels(data_dir, top_k=5):
     data_path = "Groundtruth/AllLabels"
-    label_counts = {}
+    label_counts = dict()
     for filename in os.listdir(os.path.join(data_dir, data_path)):
         file = os.path.join(data_dir, data_path, filename)
         if os.path.isfile(file):
@@ -42,46 +42,46 @@ def get_labeled_data_with_2_party(data_dir, selected_labels, n_samples, dtype="T
         if file.startswith("_".join([dtype, "Normalized"])):
             df = pd.read_csv(os.path.join(data_dir, features_path, file), header=None, sep=" ")
             df.dropna(axis=1, inplace=True)
-            print("{0} datasets features {1}".format(file, len(df.columns)))
+            print(f"{file} datasets features {len(df.columns)}")
             dfs.append(df)
-    data_XA = pd.concat(dfs, axis=1)
-    data_XA_selected = data_XA.loc[selected.index]
-    print("XA shape:", data_XA_selected.shape)  # 634 columns
+    data_xa = pd.concat(dfs, axis=1)
+    data_xa_selected = data_xa.loc[selected.index]
+    print("XA shape:", data_xa_selected.shape)  # 634 columns
 
     # get XB, which are tags
     tag_path = "NUS_WID_Tags/"
     file = "_".join([dtype, "Tags1k"]) + ".dat"
     tagsdf = pd.read_csv(os.path.join(data_dir, tag_path, file), header=None, sep="\t")
     tagsdf.dropna(axis=1, inplace=True)
-    data_XB_selected = tagsdf.loc[selected.index]
-    print("XB shape:", data_XB_selected.shape)
+    data_xb_selected = tagsdf.loc[selected.index]
+    print("XB shape:", data_xb_selected.shape)
     if n_samples != -1:
-        return data_XA_selected.values[:n_samples], data_XB_selected.values[:n_samples], selected.values[:n_samples]
+        return data_xa_selected.values[:n_samples], data_xb_selected.values[:n_samples], selected.values[:n_samples]
     else:
         # load all data
-        return data_XA_selected.values, data_XB_selected.values, selected.values
+        return data_xa_selected.values, data_xb_selected.values, selected.values
 
 
 def get_labeled_data_with_3_party(data_dir, selected_labels, n_samples, dtype="Train"):
-    Xa, Xb, Y = get_labeled_data_with_2_party(data_dir=data_dir, selected_labels=selected_labels, n_samples=n_samples,
+    xa, xb, y = get_labeled_data_with_2_party(data_dir=data_dir, selected_labels=selected_labels, n_samples=n_samples,
                                               dtype=dtype)
-    n_tags = Xb.shape[1]
+    n_tags = xb.shape[1]
     half_n_tags = int(0.5 * n_tags)
-    return Xa, Xb[:, :half_n_tags], Xb[:, half_n_tags:], Y
+    return xa, xb[:, :half_n_tags], xb[:, half_n_tags:], y
 
 
-def NUS_WIDE_load_two_party_data(data_dir, selected_labels, neg_label=-1, n_samples=-1):
+def nus_wide_load_two_party_data(data_dir, selected_labels, neg_label=-1, n_samples=-1):
     print("# load_two_party_data")
 
-    Xa, Xb, y = get_labeled_data_with_2_party(data_dir=data_dir,
+    xa, xb, y = get_labeled_data_with_2_party(data_dir=data_dir,
                                               selected_labels=selected_labels,
                                               n_samples=n_samples)
 
     scale_model = StandardScaler()
-    Xa = scale_model.fit_transform(Xa)
-    Xb = scale_model.fit_transform(Xb)
+    xa = scale_model.fit_transform(xa)
+    xb = scale_model.fit_transform(xb)
 
-    y_ = []
+    y_ = list()
     pos_count = 0
     neg_count = 0
     for i in range(y.shape[0]):
@@ -98,39 +98,38 @@ def NUS_WIDE_load_two_party_data(data_dir, selected_labels, neg_label=-1, n_samp
 
     y = np.expand_dims(y_, axis=1)
 
-    print("Xa shape:", Xa.shape)
-    print("Xb shape:", Xb.shape)
+    print("xa shape:", xa.shape)
+    print("xb shape:", xb.shape)
     print("y shape:", y.shape)
 
-    n_train = int(0.8 * Xa.shape[0])
+    n_train = int(0.8 * xa.shape[0])
     print("# of train samples:", n_train)
     # print("# of test samples:", n_test)
 
-    Xa_train, Xb_train = Xa[:n_train], Xb[:n_train]
-    Xa_test, Xb_test = Xa[n_train:], Xb[n_train:]
+    xa_train, xb_train = xa[:n_train], xb[:n_train]
+    xa_test, xb_test = xa[n_train:], xb[n_train:]
     y_train, y_test = y[:n_train], y[n_train:]
 
-    print("Xa_train.shape:", Xa_train.shape)
-    print("Xb_train.shape:", Xb_train.shape)
-    print("Xa_test.shape:", Xa_test.shape)
-    print("Xb_test.shape:", Xb_test.shape)
+    print("xa_train.shape:", xa_train.shape)
+    print("xb_train.shape:", xb_train.shape)
+    print("xa_test.shape:", xa_test.shape)
+    print("xb_test.shape:", xb_test.shape)
     print("y_train.shape:", y_train.shape)
     print("y_test.shape:", y_test.shape)
-    return [Xa_train, Xb_train, y_train], [Xa_test, Xb_test, y_test]
+    return [xa_train, xb_train, y_train], [xa_test, xb_test, y_test]
 
 
-def NUS_WIDE_load_three_party_data(data_dir, selected_labels, neg_label=-1, n_samples=-1):
+def nus_wide_load_three_party_data(data_dir, selected_labels, neg_label=-1, n_samples=-1):
     print("# load_three_party_data")
-    Xa, Xb, Xc, y = get_labeled_data_with_3_party(data_dir=data_dir,
-                                                  selected_labels=selected_labels,
+    xa, xb, xc, y = get_labeled_data_with_3_party(data_dir=data_dir, selected_labels=selected_labels,
                                                   n_samples=n_samples)
 
     scale_model = StandardScaler()
-    Xa = scale_model.fit_transform(Xa)
-    Xb = scale_model.fit_transform(Xb)
-    Xc = scale_model.fit_transform(Xc)
+    xa = scale_model.fit_transform(xa)
+    xb = scale_model.fit_transform(xb)
+    xc = scale_model.fit_transform(xc)
 
-    y_ = []
+    y_ = list()
     pos_count = 0
     neg_count = 0
     for i in range(y.shape[0]):
@@ -147,29 +146,29 @@ def NUS_WIDE_load_three_party_data(data_dir, selected_labels, neg_label=-1, n_sa
 
     y = np.expand_dims(y_, axis=1)
 
-    n_train = int(0.8 * Xa.shape[0])
-    Xa_train, Xb_train, Xc_train = Xa[:n_train], Xb[:n_train], Xc[:n_train]
-    Xa_test, Xb_test, Xc_test = Xa[n_train:], Xb[n_train:], Xc[n_train:]
+    n_train = int(0.8 * xa.shape[0])
+    xa_train, xb_train, xc_train = xa[:n_train], xb[:n_train], xc[:n_train]
+    xa_test, xb_test, xc_test = xa[n_train:], xb[n_train:], xc[n_train:]
     y_train, y_test = y[:n_train], y[n_train:]
 
-    print("Xa_train.shape:", Xa_train.shape)
-    print("Xb_train.shape:", Xb_train.shape)
-    print("Xc_train.shape:", Xc_train.shape)
-    print("Xa_test.shape:", Xa_test.shape)
-    print("Xb_test.shape:", Xb_test.shape)
-    print("Xc_test.shape:", Xc_test.shape)
+    print("xa_train.shape:", xa_train.shape)
+    print("xb_train.shape:", xb_train.shape)
+    print("xc_train.shape:", xc_train.shape)
+    print("Xa_test.shape:", xa_test.shape)
+    print("xb_test.shape:", xb_test.shape)
+    print("xc_test.shape:", xc_test.shape)
     print("y_train.shape:", y_train.shape)
     print("y_test.shape:", y_test.shape)
-    return [Xa_train, Xb_train, Xc_train, y_train], [Xa_test, Xb_test, Xc_test, y_test]
+    return [xa_train, xb_train, xc_train, y_train], [xa_test, xb_test, xc_test, y_test]
 
 
 def prepare_party_data(src_data_folder, des_data_folder, selected_labels, neg_label, n_samples, is_three_party=False):
     print("# preparing data ...")
 
-    train_data_list, test_data_list = NUS_WIDE_load_three_party_data(src_data_folder, selected_labels,
-                                                            neg_label=neg_label, n_samples=n_samples) \
-        if is_three_party else NUS_WIDE_load_two_party_data(src_data_folder, selected_labels,
-                                                   neg_label=neg_label, n_samples=n_samples)
+    train_data_list, test_data_list = nus_wide_load_three_party_data(src_data_folder, selected_labels,
+                                                                     neg_label=neg_label, n_samples=n_samples) \
+        if is_three_party else nus_wide_load_two_party_data(src_data_folder, selected_labels,
+                                                            neg_label=neg_label, n_samples=n_samples)
 
     train_data_file_name_list = ["Xa_train", "Xb_train", "Xc_train", "y_train"] if is_three_party \
         else ["Xa_train", "Xb_train", "y_train"]
@@ -178,10 +177,10 @@ def prepare_party_data(src_data_folder, des_data_folder, selected_labels, neg_la
         else ["Xa_test", "Xb_test", "y_test"]
 
     for train_data, train_data_name in zip(train_data_list, train_data_file_name_list):
-        print("{0} shape: {1}".format(train_data_name, train_data.shape))
+        print(f"{train_data_name} shape: {train_data.shape}")
 
     for test_data, test_data_name in zip(test_data_list, test_data_file_name_list):
-        print("{0} shape: {1}".format(test_data_name, test_data.shape))
+        print(f"{test_data_name} shape: {test_data.shape}")
 
     ext = "vfl_cnn_lr_00001_async_True_L_33_B_256_R_140_20190820155141_3.csv"
     train_data_full_name_list = [des_data_folder + file_name + ext for file_name in train_data_file_name_list]
@@ -228,33 +227,33 @@ def load_prepared_parties_data(data_dir, sel_lbls, load_three_party):
 
     train_data_list = list()
     for train_data_name, train_data_path in zip(train_data_name_list, train_data_path_list):
-        print("load {0}".format(train_data_name))
+        print(f"load {train_data_name}")
         train_data_list.append(np.loadtxt(fname=train_data_path, delimiter=','))
 
     test_data_list = list()
     for test_data_name, test_data_path in zip(test_data_name_list, test_data_path_list):
-        print("load {0}".format(test_data_name))
+        print(f"load {test_data_name}")
         test_data_list.append(np.loadtxt(fname=test_data_path, delimiter=','))
 
     return train_data_list, test_data_list
 
 
 if __name__ == '__main__':
-    data_dir = "../../../data/NUS_WIDE/"
+    main_data_dir = "../../../data/NUS_WIDE/"
 
     # sel = get_top_k_labels(data_dir=data_dir, top_k=10)
     # print("sel", sel)
     # ['sky', 'clouds', 'person', 'water', 'animal', 'grass', 'buildings', 'window', 'plants', 'lake']
 
     # sel_lbls = ['person', 'water', 'animal', 'grass', 'buildings']
-    sel_lbls = ["person", "animal"]
+    main_sel_lbls = ["person", "animal"]
     # if no prepare three party data, then it is going to prepare two party data
     prepare_three_party = False
-    print("prepare {0} party data".format("three" if prepare_three_party else "two"))
-    folder_name = get_data_folder_name(sel_lbls, is_three_party=prepare_three_party)
-    folder_full_name = data_dir + folder_name + "/"
-    print("folder_full_name:" + folder_full_name)
+    print(f"prepare {'three' if prepare_three_party else 'two'} party data")
+    main_folder_name = get_data_folder_name(main_sel_lbls, is_three_party=prepare_three_party)
+    folder_full_name = main_data_dir + main_folder_name + "/"
+    print(f"folder_full_name:{folder_full_name}")
     if not os.path.exists(folder_full_name):
         os.mkdir(folder_full_name)
-    prepare_party_data(src_data_folder=data_dir, des_data_folder=folder_full_name, selected_labels=sel_lbls,
+    prepare_party_data(src_data_folder=main_data_dir, des_data_folder=folder_full_name, selected_labels=main_sel_lbls,
                        neg_label=0, n_samples=20000, is_three_party=prepare_three_party)

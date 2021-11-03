@@ -3,7 +3,6 @@ import os
 
 import torch.utils.data as data
 from PIL import Image
-from torchvision import transforms
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -12,18 +11,17 @@ logger.setLevel(logging.INFO)
 
 class Landmarks(data.Dataset):
 
-    def __init__(self, data_dir, allfiles, dataidxs=None, train=True, transform=None, target_transform=None,
-                 download=False):
+    def __init__(self, data_dir, allfiles, dataidxs=None, transform=None, target_transform=None):
         """
         allfiles is [{'user_id': xxx, 'image_id': xxx, 'class': xxx} ...  
                      {'user_id': xxx, 'image_id': xxx, 'class': xxx} ... ]
         """
         self.allfiles = allfiles
-        if dataidxs == None:
+        if dataidxs is None:
             self.local_files = self.allfiles
         else:
             self.local_files = self.allfiles[dataidxs[0]: dataidxs[1]]
-            # print("self.local_files: %d, dataidxs: (%d, %d)" % (len(self.local_files), dataidxs[0], dataidxs[1]))
+            # print(f"self.local_files: {len(self.local_files)}, dataidxs: ({dataidxs[0]:d}, {dataidxs[1]:d})")
         self.data_dir = data_dir
         self.dataidxs = dataidxs
         self.transform = transform

@@ -1,28 +1,23 @@
-import argparse
 import json
 import os
 import shutil
 import sys
+from typing import List
 
+import click
 import numpy as np
+from attr import attrs
+from dataclasses import field
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../")))
 
 
-def add_args(parser):
-    parser.add_argument('--client_num_per_round', type=int, default=3, metavar='NN',
-                        help='number of workers')
-    parser.add_argument('--comm_round', type=int, default=10,
-                        help='how many round of communications we should use')
-    args = parser.parse_args()
-    return args
-
-
-def read_data(train_data_dir, test_data_dir):
-    '''parses data in given train and test data directories
+def read_data(train_data_dir, test_data_dir, client_num_per_round, comm_round):
+    """
+    Parses data in given train and test data directories
 
     assumes:
-    - the data in the input directories are .json files with 
+    - the data in the input directories are .json files with
         keys 'users' and 'user_data'
     - the set of train set users is the same as the set of test set users
 
@@ -31,12 +26,12 @@ def read_data(train_data_dir, test_data_dir):
         groups: list of group ids; empty list if none found
         train_data: dictionary of train data
         test_data: dictionary of test data
-    '''
-    clients = []
-    train_num_samples = []
-    test_num_samples = []
-    train_data = {}
-    test_data = {}
+    """
+    clients = list()
+    train_num_samples = list()
+    test_num_samples = list()
+    train_data = dict()
+    test_data = dict()
 
     train_files = os.listdir(train_data_dir)
     train_files = [f for f in train_files if f.endswith('.json')]
@@ -58,20 +53,15 @@ def read_data(train_data_dir, test_data_dir):
         test_num_samples.extend(cdata['num_samples'])
         test_data.update(cdata['user_data'])
 
-    # parse python script input parameters
-    parser = argparse.ArgumentParser()
-    main_args = add_args(parser)
-
+    @attrs(auto_attribs=True)
     class Args:
-        def __init__(self, client_id, client_num_per_round, comm_round):
-            self.client_num_per_round = client_num_per_round
-            self.comm_round = comm_round
-            self.client_id = client_id
-            self.client_sample_list = []
+        client_num_per_round: int
+        comm_round: int
+        client_id: int
+        client_sample_list: List = field(default_factory=list)
 
-    client_list = []
-    for client_number in range(main_args.client_num_per_round):
-        client_list.append(Args(client_number, main_args.client_num_per_round, main_args.comm_round))
+    client_list = [Args(client_number, client_num_per_round, comm_round) for client_number in
+                   range(client_num_per_round)]
     return clients, train_num_samples, test_num_samples, train_data, test_data, client_list
 
 
@@ -82,30 +72,30 @@ def client_sampling(round_idx, client_num_in_total, client_num_per_round):
         num_clients = min(client_num_per_round, client_num_in_total)
         np.random.seed(round_idx)  # make sure for each comparison, we are selecting the same clients each round
         client_indexes = np.random.choice(range(client_num_in_total), num_clients, replace=False)
-    print("client_indexes = %s" % str(client_indexes))
+    print(f"client_indexes = {client_indexes}")
     return client_indexes
 
 
-if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser()
-    main_args = add_args(parser)
+@click.command()
+@click.option('--client_num_per_round', type=int, default=3, help='number of workers')
+@click.option('--comm_round', type=int, default=10, help='how many round of communications we should use')
+def main(client_num_per_round, comm_round):
     train_path = "../../FedML/data/MNIST/train"
     test_path = "../../FedML/data/MNIST/test"
-    new_train = {}
-    new_test = {}
-
-    users, train_num_samples, test_num_samples, train_data, test_data, client_list = read_data(train_path, test_path)
+    new_train = dict()
+    new_test = dict()
+    users, train_num_samples, test_num_samples, train_data, test_data, client_list = read_data(
+        train_path, test_path, client_num_per_round, comm_round)
 
     for round_idx in range(client_list[0].comm_round):
-        sample_list = client_sampling(round_idx, 1000, main_args.client_num_per_round)
+        sample_list = client_sampling(round_idx, 1000, client_num_per_round)
         for worker in client_list:
             worker.client_sample_list.append(sample_list[worker.client_id])
     os.mkdir('MNIST_mobile_zip')
     for worker in client_list:
-        filetrain = 'MNIST_mobile/{}/train/train.json'.format(worker.client_id)
+        filetrain = f'MNIST_mobile/{worker.client_id}/train/train.json'
         os.makedirs(os.path.dirname(filetrain), mode=0o770, exist_ok=True)
-        filetest = 'MNIST_mobile/{}/test/test.json'.format(worker.client_id)
+        filetest = f'MNIST_mobile/{worker.client_id}/test/test.json'
         os.makedirs(os.path.dirname(filetest), mode=0o770, exist_ok=True)
         new_train['num_samples'] = [train_num_samples[i] for i in tuple(worker.client_sample_list)]
         new_train['users'] = [users[i] for i in tuple(worker.client_sample_list)]
@@ -119,5 +109,9 @@ if __name__ == '__main__':
         new_test['user_data'] = {x: test_data[x] for x in client_sample}
         with open(filetest, 'w') as ff:
             json.dump(new_test, ff)
-        shutil.make_archive('MNIST_mobile/{}'.format(worker.client_id), 'zip', 'MNIST_mobile', str(worker.client_id))
-        shutil.move('MNIST_mobile/{}.zip'.format(worker.client_id), 'MNIST_mobile_zip')
+        shutil.make_archive(f'MNIST_mobile/{worker.client_id}', 'zip', 'MNIST_mobile', str(worker.client_id))
+        shutil.move(f'MNIST_mobile/{worker.client_id}.zip', 'MNIST_mobile_zip')
+
+
+if __name__ == '__main__':
+    main()

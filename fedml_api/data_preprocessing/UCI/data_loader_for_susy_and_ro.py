@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 
 
-class DataLoader(object):
+class DataLoader:
     def __init__(self, data_name, data_path, client_list, sample_num_in_total, beta):
         # SUSY, Room Occupancy;
         self.data_name = data_name
@@ -63,7 +63,8 @@ class DataLoader(object):
                     if i >= iteration_number:
                         stochastic_data_x.append(data_point['x'])
                         stochastic_data_y.append(data_point['y'])
-                self.StreamingDataDict[self.client_list[c_index]] = self.StreamingDataDict[self.client_list[c_index]][0:iteration_number]
+                self.StreamingDataDict[self.client_list[c_index]] = self.StreamingDataDict[self.client_list[c_index]][
+                                                                    0:iteration_number]
 
         # print("***")
         # for c_index in self.client_list:
@@ -77,7 +78,7 @@ class DataLoader(object):
             while len(self.StreamingDataDict[self.client_list[client_index]]) == iteration_number:
                 client_index += 1
                 full_count += 1
-            sample = {}
+            sample = dict()
             sample["x"] = stochastic_data_x[i]
             sample["y"] = stochastic_data_y[i]
             self.StreamingDataDict[self.client_list[client_index]].append(sample)
@@ -90,8 +91,8 @@ class DataLoader(object):
         return self.StreamingDataDict
 
     def read_csv_file_for_cluster(self, percent):
-        data = []
-        label = []
+        data = list()
+        label = list()
         for client_id in self.client_list:
             self.StreamingDataDict[client_id] = []
         if percent == 0:
@@ -107,15 +108,15 @@ class DataLoader(object):
         # print("Clustering Finished")
 
         for i, cluster in enumerate(clusters):
-            sample = {}
+            sample = dict()
             sample["y"] = label[i]
             sample["x"] = data[i]
             self.StreamingDataDict[self.client_list[cluster]].append(sample)
         # print("Arrange Clustered Data has Finished")
 
         # for id in self.client_list:
-            # print("after clustering:")
-            # print(len(self.StreamingDataDict[self.client_list[id]]))
+        # print("after clustering:")
+        # print(len(self.StreamingDataDict[self.client_list[id]]))
         return self.StreamingDataDict
 
     def kMeans(self, X):
