@@ -4,25 +4,25 @@ import logging
 import torch
 import wandb
 from torch import nn
-from torch.nn.parallel import DistributedDataParallel
 
-class CentralizedTrainer(object):
-    r"""
+from FedML.fedml_api.data_preprocessing import LocalDataset
+
+
+class CentralizedTrainer:
+    """
     This class is used to train federated non-IID dataset in a centralized way
     """
 
-    def __init__(self, dataset, model, device, args):
+    def __init__(self, dataset: LocalDataset, model, device, args):
         self.device = device
         self.args = args
-        [train_data_num, test_data_num, train_data_global, test_data_global,
-         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num] = dataset
-        self.train_global = train_data_global
-        self.test_global = test_data_global
-        self.train_data_num_in_total = train_data_num
-        self.test_data_num_in_total = test_data_num
-        self.train_data_local_num_dict = train_data_local_num_dict
-        self.train_data_local_dict = train_data_local_dict
-        self.test_data_local_dict = test_data_local_dict
+        self.train_global = dataset.train_data_global
+        self.test_global = dataset.test_data_global
+        self.train_data_num_in_total = dataset.train_data_num
+        self.test_data_num_in_total = dataset.test_data_num
+        self.train_data_local_num_dict = dataset.train_data_local_num_dict
+        self.train_data_local_dict = dataset.train_data_local_dict
+        self.test_data_local_dict = dataset.test_data_local_dict
 
         self.model = model
         self.model.to(self.device)
@@ -31,8 +31,7 @@ class CentralizedTrainer(object):
             self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.args.lr)
         else:
             self.optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()),
-                                              lr=self.args.lr,
-                                              weight_decay=self.args.wd, amsgrad=True)
+                                              lr=self.args.lr, weight_decay=self.args.wd, amsgrad=True)
 
     def train(self):
         for epoch in range(self.args.epochs):
@@ -51,8 +50,7 @@ class CentralizedTrainer(object):
             loss = self.criterion(log_probs, labels)
             loss.backward()
             self.optimizer.step()
-            logging.info('Local Training Epoch: {} {}-th iters\t Loss: {:.6f}'.format(epoch_idx,
-                                                                                      batch_idx, loss.item()))
+            logging.info(f'Local Training Epoch: {epoch_idx} {batch_idx}-th iters\t Loss: {loss.item():.6f}')
 
     def eval_impl(self, epoch_idx):
         # train
@@ -65,17 +63,10 @@ class CentralizedTrainer(object):
 
     def test_on_all_clients(self, b_is_train, epoch_idx):
         self.model.eval()
-        metrics = {
-            'test_correct': 0,
-            'test_loss': 0,
-            'test_precision': 0,
-            'test_recall': 0,
-            'test_total': 0
-        }
-        if b_is_train:
-            test_data = self.train_global
-        else:
-            test_data = self.test_global
+        metrics = dict(test_correct=0, test_loss=0, test_precision=0, test_recall=0, test_total=0)
+
+        test_data = self.train_global if b_is_train else self.test_global
+
         with torch.no_grad():
             for batch_idx, (x, target) in enumerate(test_data):
                 x = x.to(self.device)
@@ -104,13 +95,7 @@ class CentralizedTrainer(object):
     def save_log(self, b_is_train, metrics, epoch_idx):
         prefix = 'Train' if b_is_train else 'Test'
 
-        all_metrics = {
-            'num_samples': [],
-            'num_correct': [],
-            'precisions': [],
-            'recalls': [],
-            'losses': []
-        }
+        all_metrics = dict(num_samples=[], num_correct=[], precisions=[], recalls=[], losses=[], )
 
         all_metrics['num_samples'].append(copy.deepcopy(metrics['test_total']))
         all_metrics['num_correct'].append(copy.deepcopy(metrics['test_correct']))
@@ -127,20 +112,20 @@ class CentralizedTrainer(object):
         recall = sum(all_metrics['recalls']) / sum(all_metrics['num_samples'])
 
         if self.args.dataset == "stackoverflow_lr":
-            stats = {prefix + '_acc': acc, prefix + '_precision': precision, prefix + '_recall': recall,
-                     prefix + '_loss': loss}
-            wandb.log({prefix + "/Acc": acc, "epoch": epoch_idx})
-            wandb.log({prefix + "/Pre": precision, "epoch": epoch_idx})
-            wandb.log({prefix + "/Rec": recall, "epoch": epoch_idx})
-            wandb.log({prefix + "/Loss": loss, "epoch": epoch_idx})
+            stats = {f'{prefix}_acc': acc, f'{prefix}_precision': precision, f'{prefix}_recall': recall,
+                     f'{prefix}_loss': loss}
+            wandb.log({f"{prefix}/Acc": acc, "epoch": epoch_idx})
+            wandb.log({f"{prefix}/Pre": precision, "epoch": epoch_idx})
+            wandb.log({f"{prefix}/Rec": recall, "epoch": epoch_idx})
+            wandb.log({f"{prefix}/Loss": loss, "epoch": epoch_idx})
             logging.info(stats)
         else:
-            stats = {prefix + '_acc': acc, prefix + '_loss': loss}
-            wandb.log({prefix + "/Acc": acc, "epoch": epoch_idx})
-            wandb.log({prefix + "/Loss": loss, "epoch": epoch_idx})
+            stats = {f'{prefix}_acc': acc, prefix + '_loss': loss}
+            wandb.log({f"{prefix}/Acc": acc, "epoch": epoch_idx})
+            wandb.log({f"{prefix}/Loss": loss, "epoch": epoch_idx})
             logging.info(stats)
 
-        stats = {prefix + '_acc': acc, prefix + '_loss': loss}
-        wandb.log({prefix + "/Acc": acc, "epoch": epoch_idx})
-        wandb.log({prefix + "/Loss": loss, "epoch": epoch_idx})
+        stats = {f'{prefix}_acc': acc, f'{prefix}_loss': loss}
+        wandb.log({f"{prefix}/Acc": acc, "epoch": epoch_idx})
+        wandb.log({f"{prefix}/Loss": loss, "epoch": epoch_idx})
         logging.info(stats)

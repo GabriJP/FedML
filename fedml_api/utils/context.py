@@ -1,9 +1,8 @@
-from contextlib import contextmanager
 import threading
-
 import traceback
-from mpi4py import MPI
+from contextlib import contextmanager
 
+from mpi4py import MPI
 
 
 @contextmanager
@@ -17,6 +16,7 @@ def raise_MPI_error():
         logging.info('traceback.format_exc():\n%s' % traceback.format_exc())
         MPI.COMM_WORLD.Abort()
 
+
 @contextmanager
 def raise_error_without_process():
     import logging
@@ -27,10 +27,10 @@ def raise_error_without_process():
         logging.info(e)
         logging.info('traceback.format_exc():\n%s' % traceback.format_exc())
 
+
 @contextmanager
 def get_lock(lock: threading.Lock()):
     lock.acquire()
     yield
     if lock.locked():
         lock.release()
-
