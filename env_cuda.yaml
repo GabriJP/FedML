@@ -1,0 +1,21 @@
+name: fedml
+channels:
+  - defaults
+  - anaconda
+dependencies:
+  - h5py
+  - anaconda::mpi4py
+  - networkx
+  - numpy
+  - pip
+  - pyflakes
+  - python=3.7.4
+  - pytorch::pytorch
+  - pytorch::torchvision
+  - nvidia::cudatoolkit
+  - scikit-learn
+  - setproctitle
+  - tqdm
+  - pip:
+      - wandb
+      - -r requirements.txt
