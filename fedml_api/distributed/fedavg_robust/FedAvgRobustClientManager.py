@@ -1,7 +1,7 @@
 import logging
 
-from fedml_api.distributed.fedavg_robust.message_define import MyMessage
 from fedml_api.distributed.fedavg.utils import transform_list_to_tensor
+from fedml_api.distributed.fedavg_robust.message_define import MyMessage
 from fedml_core.distributed.client.client_manager import ClientManager
 from fedml_core.distributed.communication.message import Message
 
@@ -60,6 +60,6 @@ class FedAvgRobustClientManager(ClientManager):
         self.send_message(message)
 
     def __train(self):
-        logging.info("#######training########### round_id = %d" % self.round_idx)
+        logging.info(f"#######training########### round_id = {self.round_idx:d}")
         weights, local_sample_num = self.trainer.train()
         self.send_model_to_server(0, weights, local_sample_num)

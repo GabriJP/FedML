@@ -35,9 +35,9 @@ class GKTServerMananger(ServerManager):
         labels_dict_test = msg_params.get(MyMessage.MSG_ARG_KEY_LABELS_TEST)
 
         self.server_trainer.add_local_trained_result(sender_id - 1, extracted_feature_dict, logits_dict, labels_dict,
-                                                 extracted_feature_dict_test, labels_dict_test)
+                                                     extracted_feature_dict_test, labels_dict_test)
         b_all_received = self.server_trainer.check_whether_all_receive()
-        logging.info("b_all_received = " + str(b_all_received))
+        logging.info(f"b_all_received = {b_all_received}")
         if b_all_received:
             self.server_trainer.train(self.round_idx)
 
@@ -48,16 +48,16 @@ class GKTServerMananger(ServerManager):
                 return
 
             for receiver_id in range(1, self.size):
-                global_logits = self.server_trainer.get_global_logits(receiver_id-1)
+                global_logits = self.server_trainer.get_global_logits(receiver_id - 1)
                 self.send_message_sync_model_to_client(receiver_id, global_logits)
 
     def send_message_init_config(self, receive_id, global_model_params):
         message = Message(MyMessage.MSG_TYPE_S2C_INIT_CONFIG, self.get_sender_id(), receive_id)
         self.send_message(message)
-        logging.info("send_message_init_config. Receive_id: " + str(receive_id))
+        logging.info(f"send_message_init_config. Receive_id: {receive_id}")
 
     def send_message_sync_model_to_client(self, receive_id, global_logits):
         message = Message(MyMessage.MSG_TYPE_S2C_SYNC_TO_CLIENT, self.get_sender_id(), receive_id)
         message.add_params(MyMessage.MSG_ARG_KEY_GLOBAL_LOGITS, global_logits)
         self.send_message(message)
-        logging.info("send_message_sync_model_to_client. Receive_id: " + str(receive_id))
+        logging.info(f"send_message_sync_model_to_client. Receive_id: {receive_id}")

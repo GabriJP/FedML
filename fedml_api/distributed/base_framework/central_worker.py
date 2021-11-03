@@ -13,7 +13,7 @@ class BaseCentralWorker(object):
             self.flag_client_model_uploaded_dict[idx] = False
 
     def add_client_local_result(self, index, client_local_result):
-        logging.info("add_client_local_result. index = %d" % index)
+        logging.info(f"add_client_local_result. index = {index:d}")
         self.client_local_result_list[index] = client_local_result
         self.flag_client_model_uploaded_dict[index] = True
 

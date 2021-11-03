@@ -24,4 +24,4 @@ def post_complete_message_to_sweep_process(args):
     pipe_fd = os.open(pipe_path, os.O_WRONLY)
 
     with os.fdopen(pipe_fd, 'w') as pipe:
-        pipe.write("training is finished! \n%s\n" % (str(args)))
+        pipe.write(f"training is finished! \n{args}\n")

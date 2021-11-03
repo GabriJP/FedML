@@ -22,13 +22,13 @@ class FedNASTrainer(object):
         self.model.to(self.device)
 
     def update_model(self, weights):
-        logging.info("update_model. client_index = %d" % self.client_index)
+        logging.info(f"update_model. client_index = {self.client_index:d}")
         self.model.load_state_dict(weights)
 
     def update_arch(self, alphas):
-        logging.info("update_arch. client_index = %d" % self.client_index)
+        logging.info(f"update_arch. client_index = {self.client_index:d}")
         for a_g, model_arch in zip(alphas, self.model.arch_parameters()):
-            model_arch.data.copy_(a_g.data)
+            model_arch.main_data.copy_(a_g.main_data)
 
     # local search
     def search(self):
@@ -59,7 +59,7 @@ class FedNASTrainer(object):
             train_acc, train_obj, train_loss = self.local_search(self.train_local, self.test_local,
                                                                  self.model, architect, self.criterion,
                                                                  optimizer)
-            logging.info('client_idx = %d, epoch = %d, local search_acc %f' % (self.client_index, epoch, train_acc))
+            logging.info(f'client_idx = {self.client_index:d}, epoch = {epoch:d}, local search_acc {train_acc:f}')
             local_avg_train_acc.append(train_acc)
             local_avg_train_loss.append(train_loss)
 
@@ -70,7 +70,7 @@ class FedNASTrainer(object):
 
             scheduler.step()
             lr = scheduler.get_lr()[0]
-            logging.info('client_idx = %d, epoch %d lr %e' % (self.client_index, epoch, lr))
+            logging.info(f'client_idx = {self.client_index:d}, epoch {epoch:d} lr {lr:e}')
 
         weights = self.model.cpu().state_dict()
         alphas = self.model.cpu().arch_parameters()
@@ -121,8 +121,8 @@ class FedNASTrainer(object):
             # torch.cuda.empty_cache()
 
             if step % self.args.report_freq == 0:
-                logging.info('client_index = %d, search %03d %e %f %f', self.client_index,
-                             step, objs.avg, top1.avg, top5.avg)
+                logging.info(
+                    f'client_index = {self.client_index:d}, search {step:03d} {objs.avg:e} {top1.avg:f} {top5.avg:f}')
 
         return top1.avg / 100.0, objs.avg / 100.0, loss
 
@@ -138,8 +138,8 @@ class FedNASTrainer(object):
             momentum=self.args.momentum,
             weight_decay=self.args.weight_decay)
 
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, float(self.args.epochs), eta_min=self.args.learning_rate_min)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, int(self.args.epochs),
+                                                               eta_min=self.args.learning_rate_min)
 
         local_avg_train_acc = []
         local_avg_train_loss = []
@@ -148,13 +148,13 @@ class FedNASTrainer(object):
             train_acc, train_obj, train_loss = self.local_train(self.train_local, self.test_local,
                                                                 self.model, self.criterion,
                                                                 optimizer)
-            logging.info('client_idx = %d, local train_acc %f' % (self.client_index, train_acc))
+            logging.info(f'client_idx = {self.client_index:d}, local train_acc {train_acc:f}')
             local_avg_train_acc.append(train_acc)
             local_avg_train_loss.append(train_loss)
 
             scheduler.step()
             lr = scheduler.get_lr()[0]
-            logging.info('client_idx = %d, epoch %d lr %e' % (self.client_index, epoch, lr))
+            logging.info(f'client_idx = {self.client_index:d}, epoch {epoch:d} lr {lr:e}')
 
         weights = self.model.cpu().state_dict()
 
@@ -194,7 +194,7 @@ class FedNASTrainer(object):
 
             # torch.cuda.empty_cache()
             if step % self.args.report_freq == 0:
-                logging.info('train %03d %e %f %f', step, objs.avg, top1.avg, top5.avg)
+                logging.info(f'train {step:03d} {objs.avg:e} {top1.avg:f} {top5.avg:f}')
 
         return top1.avg, objs.avg, loss
 
@@ -218,8 +218,8 @@ class FedNASTrainer(object):
             top5.update(prec5.item(), n)
 
             if step % self.args.report_freq == 0:
-                logging.info('client_index = %d, valid %03d %e %f %f', self.client_index,
-                             step, objs.avg, top1.avg, top5.avg)
+                logging.info(
+                    f'client_index = {self.client_index:d}, valid {step:03d} {objs.avg:e} {top1.avg:f} {top5.avg:f}')
 
         return top1.avg / 100.0, objs.avg / 100.0, loss
 
@@ -245,5 +245,5 @@ class FedNASTrainer(object):
                 test_correct += correct.item()
                 test_loss += loss.item() * target.size(0)
                 test_sample_number += target.size(0)
-            logging.info("client_idx = %d, local_train_loss = %s" % (self.client_index, test_loss))
+            logging.info(f"client_idx = {self.client_index:d}, local_train_loss = {test_loss}")
         return test_correct / test_sample_number, test_loss

@@ -43,10 +43,8 @@ class MyModelTrainer(ModelTrainer):
                 batch_loss.append(loss.item())
             if len(batch_loss) > 0:
                 epoch_loss.append(sum(batch_loss) / len(batch_loss))
-                logging.info('(Trainer_ID {}. Local Training Epoch: {} \tLoss: {:.6f}'.format(self.id,
-                                                                                              epoch,
-                                                                                              sum(epoch_loss) / len(
-                                                                                                  epoch_loss)))
+                logging.info(f'(Trainer_ID {self.id}. Local Training Epoch: {epoch} \t'
+                             f'Loss: {sum(epoch_loss) / len(epoch_loss):.6f}')
 
     def test(self, test_data, device, args):
         model = self.model

@@ -6,7 +6,7 @@ from torch import nn
 from fedml_api.distributed.turboaggregate.utils import transform_tensor_to_list
 
 
-class TA_Trainer(object):
+class TA_Trainer:
     def __init__(self, client_index, train_data_local_dict, train_data_local_num_dict, train_data_num, device, model,
                  args):
         self.client_index = client_index
@@ -57,8 +57,8 @@ class TA_Trainer(object):
                 batch_loss.append(loss.item())
             if len(batch_loss) > 0:
                 epoch_loss.append(sum(batch_loss) / len(batch_loss))
-                logging.info('(client {}. Local Training Epoch: {} \tLoss: {:.6f}'.format(self.client_index,
-                                                                epoch, sum(epoch_loss) / len(epoch_loss)))
+                logging.info(f'(client {self.client_index}. Local Training Epoch: {epoch} \t'
+                             f'Loss: {sum(epoch_loss) / len(epoch_loss):.6f}')
 
         weights = self.model.cpu().state_dict()
 

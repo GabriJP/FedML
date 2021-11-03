@@ -51,7 +51,7 @@ class FedNASClientManager(ClientManager):
             self.finish()
 
     def __train(self):
-        logging.info("#######training########### round_id = %d" % self.round_idx)
+        logging.info(f"#######training########### round_id = {self.round_idx:d}")
         start_time = time.time()
         if self.args.stage == "search":
             weights, alphas, local_sample_num, train_acc, train_loss = self.trainer.search()
@@ -60,12 +60,12 @@ class FedNASClientManager(ClientManager):
             alphas = []
         train_finished_time = time.time()
         # for one epoch, the local searching time cost is: 75s (based on RTX2080Ti)
-        logging.info("local searching time cost: %d" % (train_finished_time - start_time))
+        logging.info(f"local searching time cost: {train_finished_time - start_time:d}")
 
         self.__send_msg_fedavg_send_model_to_server(weights, alphas, local_sample_num, train_acc, train_loss)
         communication_finished_time = time.time()
         # for one epoch, the local communication time cost is: < 1s (based o n RTX2080Ti)
-        logging.info("local communication time cost: %d" % (communication_finished_time - train_finished_time))
+        logging.info(f"local communication time cost: {communication_finished_time - train_finished_time:d}")
 
     def __send_msg_fedavg_send_model_to_server(self, weights, alphas, local_sample_num, valid_acc, valid_loss):
         message = Message(MyMessage.MSG_TYPE_C2S_SEND_MODEL_TO_SERVER, self.rank, 0)

@@ -1,26 +1,18 @@
-import os
-import shutil
 import glob
-import math
-from tqdm import tqdm
-import collections
-import random
-import pickle
 import logging
-
+import math
+import os
+import pickle
+import shutil
 from collections import OrderedDict
 
-import numpy as np 
+import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F 
-from torch.utils.data import DataLoader
-from torch.nn.modules.batchnorm import _BatchNorm
-from torch.nn.parallel._functions import ReduceAddCoalesced, Broadcast
+
 
 # import coco_dataloader as dataloader
 # import dataloader
-from PIL import Image, ImageOps, ImageFilter
 
 
 def transform_list_to_tensor(model_params_list):
@@ -42,7 +34,7 @@ def save_as_pickle_file(path, data):
 
 
 def load_from_pickle_file(path):
-    return pickle.load(open(path, "rb"))  
+    return pickle.load(open(path, "rb"))
 
 
 def count_parameters(model):
@@ -66,6 +58,7 @@ class EvaluationMetricsKeeper:
         self.mIoU = mIoU
         self.FWIoU = FWIoU
         self.loss = loss
+
 
 # Segmentation Loss
 class SegmentationLosses(object):
@@ -123,10 +116,11 @@ class LR_Scheduler(object):
           :attr:`args.lr_step`
         iters_per_epoch: number of iterations per epoch
     """
+
     def __init__(self, mode, base_lr, num_epochs, iters_per_epoch=0,
                  lr_step=0, warmup_epochs=0):
         self.mode = mode
-        logging.info('Using {} LR Scheduler!'.format(self.mode))
+        logging.info(f'Using {self.mode} LR Scheduler!')
         self.lr = base_lr
         if mode == 'step':
             assert lr_step
@@ -153,7 +147,6 @@ class LR_Scheduler(object):
             self.epoch = epoch
         assert lr >= 0
         self._adjust_learning_rate(optimizer, lr)
-
 
     def _adjust_learning_rate(self, optimizer, lr):
         if len(optimizer.param_groups) == 1:
@@ -190,7 +183,7 @@ class Saver(object):
                 previous_miou = [0.0]
                 for run in self.runs:
                     run_id = run.split('_')[-1]
-                    path = os.path.join(self.directory, 'experiment_{}'.format(str(run_id)), 'best_pred.txt')
+                    path = os.path.join(self.directory, f'experiment_{run_id}', 'best_pred.txt')
                     if os.path.exists(path):
                         with open(path, 'r') as f:
                             miou = float(f.readline())
@@ -204,7 +197,7 @@ class Saver(object):
                 shutil.copyfile(filename, os.path.join(self.directory, 'model_best.pth.tar'))
 
     def save_experiment_config(self):
-        
+
         logfile = os.path.join(self.experiment_dir, 'parameters.txt')
         log_file = open(logfile, 'w')
 
@@ -221,7 +214,7 @@ class Saver(object):
         p['partition_alpha'] = self.args.partition_alpha
         p['client_num_in_total'] = self.args.client_num_in_total
         p['client_num_per_round'] = self.args.client_num_per_round
-        p['batch_size'] = self.args.batch_size   
+        p['batch_size'] = self.args.batch_size
         p['sync_bn'] = self.args.sync_bn
         p['freeze_bn'] = self.args.freeze_bn
         p['client_optimizer'] = self.args.client_optimizer
@@ -236,7 +229,7 @@ class Saver(object):
         p['evaluation_frequency'] = self.args.evaluation_frequency
         p['gpu_server_num'] = self.args.gpu_server_num
         p['gpu_num_per_server'] = self.args.gpu_num_per_server
-  
+
         for key, val in p.items():
             log_file.write(key + ':' + str(val) + '\n')
         log_file.close()
@@ -246,7 +239,7 @@ class Saver(object):
 class Evaluator(object):
     def __init__(self, num_class):
         self.num_class = num_class
-        self.confusion_matrix = np.zeros((self.num_class,)*2)
+        self.confusion_matrix = np.zeros((self.num_class,) * 2)
 
     def Pixel_Accuracy(self):
         Acc = np.diag(self.confusion_matrix).sum() / self.confusion_matrix.sum()
@@ -259,16 +252,16 @@ class Evaluator(object):
 
     def Mean_Intersection_over_Union(self):
         MIoU = np.diag(self.confusion_matrix) / (
-                    np.sum(self.confusion_matrix, axis=1) + np.sum(self.confusion_matrix, axis=0) -
-                    np.diag(self.confusion_matrix))
+                np.sum(self.confusion_matrix, axis=1) + np.sum(self.confusion_matrix, axis=0) -
+                np.diag(self.confusion_matrix))
         MIoU = np.nanmean(MIoU)
         return MIoU
 
     def Frequency_Weighted_Intersection_over_Union(self):
         freq = np.sum(self.confusion_matrix, axis=1) / np.sum(self.confusion_matrix)
         iu = np.diag(self.confusion_matrix) / (
-                    np.sum(self.confusion_matrix, axis=1) + np.sum(self.confusion_matrix, axis=0) -
-                    np.diag(self.confusion_matrix))
+                np.sum(self.confusion_matrix, axis=1) + np.sum(self.confusion_matrix, axis=0) -
+                np.diag(self.confusion_matrix))
 
         FWIoU = (freq[freq > 0] * iu[freq > 0]).sum()
         return FWIoU
@@ -276,7 +269,7 @@ class Evaluator(object):
     def _generate_matrix(self, gt_image, pre_image):
         mask = (gt_image >= 0) & (gt_image < self.num_class)
         label = self.num_class * gt_image[mask].astype('int') + pre_image[mask]
-        count = np.bincount(label, minlength=self.num_class**2)
+        count = np.bincount(label, minlength=self.num_class ** 2)
         confusion_matrix = count.reshape(self.num_class, self.num_class)
         return confusion_matrix
 
@@ -286,4 +279,3 @@ class Evaluator(object):
 
     def reset(self):
         self.confusion_matrix = np.zeros((self.num_class,) * 2)
-

@@ -1,12 +1,12 @@
 from fedml_api.distributed.split_nn.message_define import MyMessage
-from fedml_core.distributed.server.server_manager import ServerManager
 from fedml_core.distributed.communication.message import Message
+from fedml_core.distributed.server.server_manager import ServerManager
+
 
 class SplitNNServerManager(ServerManager):
 
     def __init__(self, arg_dict, trainer, backend="MPI"):
-        super().__init__(arg_dict["args"], arg_dict["comm"], arg_dict["rank"],
-                         arg_dict["max_rank"] + 1, backend)
+        super().__init__(arg_dict["args"], arg_dict["comm"], arg_dict["rank"], arg_dict["max_rank"] + 1, backend)
         self.trainer = trainer
         self.round_idx = 0
 
@@ -14,8 +14,7 @@ class SplitNNServerManager(ServerManager):
         super().run()
 
     def register_message_receive_handlers(self):
-        self.register_message_receive_handler(MyMessage.MSG_TYPE_C2S_SEND_ACTS,
-                                              self.handle_message_acts)
+        self.register_message_receive_handler(MyMessage.MSG_TYPE_C2S_SEND_ACTS, self.handle_message_acts)
         self.register_message_receive_handler(MyMessage.MSG_TYPE_C2S_VALIDATION_MODE,
                                               self.handle_message_validation_mode)
         self.register_message_receive_handler(MyMessage.MSG_TYPE_C2S_VALIDATION_OVER,

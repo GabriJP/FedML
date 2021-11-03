@@ -48,8 +48,7 @@ class SplitNN_server():
         self.correct += predictions.eq(labels).sum().item()
         if self.step % self.log_step == 0 and self.phase == "train":
             acc = self.correct / self.total
-            logging.info("phase={} acc={} loss={} epoch={} and step={}"
-                         .format("train", acc, self.loss.item(), self.epoch, self.step))
+            logging.info(f"phase={'train'} acc={acc} loss={self.loss.item()} epoch={self.epoch} and step={self.step}")
         if self.phase == "validation":
             self.val_loss += self.loss.item()
         self.step += 1
@@ -63,10 +62,9 @@ class SplitNN_server():
         # not precise estimation of validation loss 
         self.val_loss /= self.step
         acc = self.correct / self.total
-        logging.info("phase={} acc={} loss={} epoch={} and step={}"
-                     .format(self.phase, acc, self.val_loss, self.epoch, self.step))
+        logging.info(f"phase={self.phase} acc={acc} loss={self.val_loss} epoch={self.epoch} and step={self.step}")
 
         self.epoch += 1
         self.active_node = (self.active_node % self.MAX_RANK) + 1
         self.train_mode()
-        logging.info("current active client is {}".format(self.active_node))
+        logging.info(f"current active client is {self.active_node}")

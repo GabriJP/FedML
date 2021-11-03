@@ -43,10 +43,9 @@ class MyModelTrainer(ModelTrainer):
                 batch_loss.append(loss.item())
             if len(batch_loss) > 0:
                 epoch_loss.append(sum(batch_loss) / len(batch_loss))
-                logging.info('(Trainer_ID {}. Local Training Epoch: {} \tLoss: {:.6f}'.format(self.id,
-                                                                                              epoch,
-                                                                                              sum(epoch_loss) / len(
-                                                                                                  epoch_loss)))
+                logging.info(
+                    f'(Trainer_ID {self.id}. Local Training Epoch: {epoch} \t'
+                    f'Loss: {sum(epoch_loss) / len(epoch_loss):.6f}')
 
     def test(self, test_data, device, args):
         model = self.model
@@ -54,13 +53,13 @@ class MyModelTrainer(ModelTrainer):
         model.eval()
         model.to(device)
 
-        metrics = {
-            'test_correct': 0,
-            'test_loss': 0,
-            'test_precision': 0,
-            'test_recall': 0,
-            'test_total': 0
-        }
+        metrics = dict(
+            test_correct=0,
+            test_loss=0,
+            test_precision=0,
+            test_recall=0,
+            test_total=0,
+        )
 
         criterion = nn.CrossEntropyLoss().to(device)
         with torch.no_grad():

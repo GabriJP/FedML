@@ -1,9 +1,9 @@
 import logging
-import os, signal
+import os
 import sys
 
 from .message_define import MyMessage
-from .utils import transform_tensor_to_list, post_complete_message_to_sweep_process
+from .utils import transform_tensor_to_list
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML")))
@@ -16,7 +16,8 @@ except ImportError:
 
 
 class FedGANServerManager(ServerManager):
-    def __init__(self, args, aggregator, comm=None, rank=0, size=0, backend="MPI", is_preprocessed=False, preprocessed_client_lists=None):
+    def __init__(self, args, aggregator, comm=None, rank=0, size=0, backend="MPI", is_preprocessed=False,
+                 preprocessed_client_lists=None):
         super().__init__(args, comm, rank, size, backend)
         self.args = args
         self.aggregator = aggregator
@@ -49,7 +50,7 @@ class FedGANServerManager(ServerManager):
 
         self.aggregator.add_local_trained_result(sender_id - 1, model_params, local_sample_number)
         b_all_received = self.aggregator.check_whether_all_receive()
-        logging.info("b_all_received = " + str(b_all_received))
+        logging.info(f"b_all_received = {b_all_received}")
         if b_all_received:
             global_model_params = self.aggregator.aggregate()
             # self.aggregator.test_on_server_for_all_clients(self.round_idx)
@@ -71,9 +72,9 @@ class FedGANServerManager(ServerManager):
                 # sampling clients
                 client_indexes = self.aggregator.client_sampling(self.round_idx, self.args.client_num_in_total,
                                                                  self.args.client_num_per_round)
-            
-            print('indexes of clients: ' + str(client_indexes))
-            print("size = %d" % self.size)
+
+            print(f'indexes of clients: {client_indexes}')
+            print(f"size = {self.size:d}")
             if self.args.is_mobile == 1:
                 global_model_params = transform_tensor_to_list(global_model_params)
 
@@ -88,7 +89,7 @@ class FedGANServerManager(ServerManager):
         self.send_message(message)
 
     def send_message_sync_model_to_client(self, receive_id, global_model_params, client_index):
-        logging.info("send_message_sync_model_to_client. receive_id = %d" % receive_id)
+        logging.info(f"send_message_sync_model_to_client. receive_id = {receive_id:d}")
         message = Message(MyMessage.MSG_TYPE_S2C_SYNC_MODEL_TO_CLIENT, self.get_sender_id(), receive_id)
         message.add_params(MyMessage.MSG_ARG_KEY_MODEL_PARAMS, global_model_params)
         message.add_params(MyMessage.MSG_ARG_KEY_CLIENT_INDEX, str(client_index))

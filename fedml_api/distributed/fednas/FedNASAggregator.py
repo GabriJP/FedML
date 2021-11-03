@@ -37,7 +37,7 @@ class FedNASAggregator(object):
         return self.model
 
     def add_local_trained_result(self, index, model_params, arch_params, sample_num, train_acc, train_loss):
-        logging.info("add_model. index = %d" % index)
+        logging.info(f"add_model. index = {index:d}")
         self.model_dict[index] = model_params
         self.arch_dict[index] = arch_params
         self.sample_num_dict[index] = sample_num
@@ -66,7 +66,7 @@ class FedNASAggregator(object):
     def __update_arch(self, alphas):
         logging.info("update_arch. server.")
         for a_g, model_arch in zip(alphas, self.model.arch_parameters()):
-            model_arch.data.copy_(a_g.data)
+            model_arch.main_data.copy_(a_g.main_data)
 
     def __aggregate_weight(self):
         logging.info("################aggregate weights############")
@@ -89,7 +89,7 @@ class FedNASAggregator(object):
         del model_list
         self.model_dict.clear()
         end_time = time.time()
-        logging.info("aggregate weights time cost: %d" % (end_time - start_time))
+        logging.info(f"aggregate weights time cost: {end_time - start_time:d}")
         return averaged_params
 
     def __aggregate_alpha(self):
@@ -109,29 +109,29 @@ class FedNASAggregator(object):
                 else:
                     alpha += local_alpha[index] * w
         end_time = time.time()
-        logging.info("aggregate alphas time cost: %d" % (end_time - start_time))
+        logging.info(f"aggregate alphas time cost: {end_time - start_time:d}")
         return averaged_alphas
 
     def statistics(self, round_idx):
         # train acc
         train_acc_list = self.train_acc_dict.values()
         self.train_acc_avg = sum(train_acc_list) / len(train_acc_list)
-        logging.info('Round {:3d}, Average Train Accuracy {:.3f}'.format(round_idx, self.train_acc_avg))
+        logging.info(f'Round {round_idx:3d}, Average Train Accuracy {self.train_acc_avg:.3f}')
         wandb.log({"Train Accuracy": self.train_acc_avg, "Round": round_idx})
         # train loss
         train_loss_list = self.train_loss_dict.values()
         train_loss_avg = sum(train_loss_list) / len(train_loss_list)
-        logging.info('Round {:3d}, Average Train Loss {:.3f}'.format(round_idx, train_loss_avg))
+        logging.info(f'Round {round_idx:3d}, Average Train Loss {train_loss_avg:.3f}')
         wandb.log({"Train Loss": train_loss_avg, "Round": round_idx})
 
         # test acc
-        logging.info('Round {:3d}, Average Validation Accuracy {:.3f}'.format(round_idx, self.test_acc_avg))
+        logging.info(f'Round {round_idx:3d}, Average Validation Accuracy {self.test_acc_avg:.3f}')
         wandb.log({"Validation Accuracy": self.test_acc_avg, "Round": round_idx})
         # test loss
-        logging.info('Round {:3d}, Average Validation Loss {:.3f}'.format(round_idx, self.test_loss_avg))
+        logging.info(f'Round {round_idx:3d}, Average Validation Loss {self.test_loss_avg:.3f}')
         wandb.log({"Validation Loss": self.test_loss_avg, "Round": round_idx})
 
-        logging.info("search_train_valid_acc_gap %f" % (self.train_acc_avg - self.test_loss_avg))
+        logging.info(f"search_train_valid_acc_gap {self.train_acc_avg - self.test_loss_avg:f}")
         wandb.log({"search_train_valid_acc_gap": self.train_acc_avg - self.test_loss_avg, "Round": round_idx})
 
     def infer(self, round_idx):
@@ -162,13 +162,13 @@ class FedNASAggregator(object):
                     test_correct += correct.item()
                     test_loss += loss.item() * target.size(0)
                     test_sample_number += target.size(0)
-                logging.info("server test. round_idx = %d, test_loss = %s" % (round_idx, test_loss))
+                logging.info(f"server test. round_idx = {round_idx:d}, test_loss = {test_loss}")
 
             self.test_acc_avg = test_correct / test_sample_number
             self.test_loss_avg = test_loss
 
             end_time = time.time()
-            logging.info("server_infer time cost: %d" % (end_time - start_time))
+            logging.info(f"server_infer time cost: {end_time - start_time:d}")
 
     def record_model_global_architecture(self, round_idx):
         # save the structure
@@ -176,8 +176,8 @@ class FedNASAggregator(object):
         cnn_count = normal_cnn_count + reduce_cnn_count
         wandb.log({"cnn_count": cnn_count, "Round": round_idx})
 
-        logging.info("(n:%d,r:%d)" % (normal_cnn_count, reduce_cnn_count))
-        logging.info('genotype = %s', genotype)
+        logging.info(f"(n:{normal_cnn_count:d},r:{reduce_cnn_count:d})")
+        logging.info("genotype = %s", genotype)
         wandb.log({"genotype": str(genotype), "round_idx": round_idx})
 
         self.wandb_table.add_data(str(round_idx), str(genotype))
@@ -185,25 +185,23 @@ class FedNASAggregator(object):
 
         # save the cnn architecture according to the CNN count
         cnn_count = normal_cnn_count * 10 + reduce_cnn_count
-        wandb.log({"searching_cnn_count(%s)" % cnn_count: self.test_acc_avg, "epoch": round_idx})
+        wandb.log({f"searching_cnn_count({cnn_count})": self.test_acc_avg, "epoch": round_idx})
         if cnn_count not in self.best_accuracy_different_cnn_counts.keys():
             self.best_accuracy_different_cnn_counts[cnn_count] = self.test_acc_avg
-            summary_key_cnn_structure = "best_acc_for_cnn_structure(n:%d,r:%d)" % (
-                normal_cnn_count, reduce_cnn_count)
+            summary_key_cnn_structure = f"best_acc_for_cnn_structure(n:{normal_cnn_count:d},r:{reduce_cnn_count:d})"
             wandb.run.summary[summary_key_cnn_structure] = self.test_acc_avg
 
-            summary_key_best_cnn_structure = "epoch_of_best_acc_for_cnn_structure(n:%d,r:%d)" % (
-                normal_cnn_count, reduce_cnn_count)
+            summary_key_best_cnn_structure = f"epoch_of_best_acc_for_cnn_structure(n:{normal_cnn_count:d}," \
+                                             f"r:{reduce_cnn_count:d})"
             wandb.run.summary[summary_key_best_cnn_structure] = round_idx
         else:
             if self.test_acc_avg > self.best_accuracy_different_cnn_counts[cnn_count]:
                 self.best_accuracy_different_cnn_counts[cnn_count] = self.test_acc_avg
-                summary_key_cnn_structure = "best_acc_for_cnn_structure(n:%d,r:%d)" % (
-                    normal_cnn_count, reduce_cnn_count)
+                summary_key_cnn_structure = f"best_acc_for_cnn_structure(n:{normal_cnn_count:d},r:{reduce_cnn_count:d})"
                 wandb.run.summary[summary_key_cnn_structure] = self.test_acc_avg
 
-                summary_key_best_cnn_structure = "epoch_of_best_acc_for_cnn_structure(n:%d,r:%d)" % (
-                    normal_cnn_count, reduce_cnn_count)
+                summary_key_best_cnn_structure = f"epoch_of_best_acc_for_cnn_structure(n:{normal_cnn_count:d}," \
+                                                 f"r:{reduce_cnn_count:d})"
                 wandb.run.summary[summary_key_best_cnn_structure] = round_idx
 
         if self.test_acc_avg > self.best_accuracy:

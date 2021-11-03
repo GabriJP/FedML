@@ -1,4 +1,4 @@
-class MyMessage(object):
+class MyMessage:
     """
         message type definition
     """
@@ -17,5 +17,3 @@ class MyMessage(object):
         message payload keywords definition
     """
     MSG_ARG_KEY_INFORMATION = "information"
-
-

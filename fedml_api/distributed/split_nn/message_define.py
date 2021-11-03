@@ -1,4 +1,4 @@
-class MyMessage(object):
+class MyMessage:
     """
         message type definition
     """

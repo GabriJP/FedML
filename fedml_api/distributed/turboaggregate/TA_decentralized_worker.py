@@ -1,7 +1,7 @@
 import logging
 
 
-class TA_DecentralizedWorker(object):
+class TA_DecentralizedWorker:
     def __init__(self, worker_index, topology_manager):
         self.worker_index = worker_index
         self.in_neighbor_idx_list = topology_manager.get_in_neighbor_idx_list(self.worker_index)

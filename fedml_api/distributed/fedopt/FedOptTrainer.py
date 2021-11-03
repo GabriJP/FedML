@@ -1,7 +1,7 @@
 from .utils import transform_tensor_to_list
 
 
-class FedOptTrainer(object):
+class FedOptTrainer:
 
     def __init__(self, client_index, train_data_local_dict, train_data_local_num_dict, train_data_num, device,
                  args, model_trainer):
@@ -25,7 +25,7 @@ class FedOptTrainer(object):
         self.train_local = self.train_data_local_dict[client_index]
         self.local_sample_number = self.train_data_local_num_dict[client_index]
 
-    def train(self, round_idx = None):
+    def train(self, round_idx=None):
         self.args.round_idx = round_idx
         self.trainer.train(self.train_local, self.device, self.args)
 

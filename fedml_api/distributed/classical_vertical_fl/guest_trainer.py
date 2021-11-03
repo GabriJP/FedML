@@ -7,7 +7,7 @@ from sklearn.metrics import roc_auc_score, accuracy_score
 from torch import optim, nn
 
 
-class GuestTrainer(object):
+class GuestTrainer:
     def __init__(self, client_num, device, X_train, y_train, X_test, y_test, model_feature_extractor, model_classifier,
                  args):
         self.client_num = client_num
@@ -28,9 +28,9 @@ class GuestTrainer(object):
         else:
             self.n_batches = N // args.batch_size + 1
         self.batch_idx = 0
-        logging.info("number of sample = %d" % N)
-        logging.info("batch_size = %d" % self.batch_size)
-        logging.info("number of batches = %d" % self.n_batches)
+        logging.info(f"number of sample = {N:d}")
+        logging.info(f"batch_size = {self.batch_size:d}")
+        logging.info(f"number of batches = {self.n_batches:d}")
 
         # model
         self.model_feature_extractor = model_feature_extractor
@@ -147,7 +147,7 @@ class GuestTrainer(object):
         ave_loss = np.mean(self.loss_list)
         self.loss_list = list()
         logging.info(
-            "--- round_idx: {%d}, loss: {%s}, acc: {%s}, auc: {%s}" % (round_idx, str(ave_loss), str(acc), str(auc)))
+            f"--- round_idx: {{{round_idx:d}}}, loss: {{{str(ave_loss)}}}, acc: {{{str(acc)}}}, auc: {{{str(auc)}}}")
         logging.info(precision_recall_fscore_support(y_test, y_hat_lbls, average="macro", warn_for=tuple()))
 
     def _sigmoid(self, x):

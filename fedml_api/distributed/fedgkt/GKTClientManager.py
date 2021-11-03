@@ -23,12 +23,12 @@ class GKTClientMananger(ClientManager):
                                               self.handle_message_receive_logits_from_server)
 
     def handle_message_init(self, msg_params):
-        logging.info("handle_message_init. Rank = " + str(self.rank))
+        logging.info(f"handle_message_init. Rank = {self.rank}")
         self.round_idx = 0
         self.__train()
 
     def handle_message_receive_logits_from_server(self, msg_params):
-        logging.info("handle_message_receive_logits_from_server. Rank = " + str(self.rank))
+        logging.info(f"handle_message_receive_logits_from_server. Rank = {self.rank}")
         global_logits = msg_params.get(MyMessage.MSG_ARG_KEY_GLOBAL_LOGITS)
         self.trainer.update_large_model_logits(global_logits)
         self.round_idx += 1
@@ -47,8 +47,8 @@ class GKTClientMananger(ClientManager):
         self.send_message(message)
 
     def __train(self):
-        logging.info("#######training########### round_id = %d" % self.round_idx)
+        logging.info(f"#######training########### round_id = {self.round_idx:d}")
         extracted_feature_dict, logits_dict, labels_dict, extracted_feature_dict_test, labels_dict_test = self.trainer.train()
         logging.info("#################finish training##############################")
-        self.send_model_to_server(0, extracted_feature_dict, logits_dict, labels_dict, extracted_feature_dict_test, labels_dict_test)
-
+        self.send_model_to_server(0, extracted_feature_dict, logits_dict, labels_dict, extracted_feature_dict_test,
+                                  labels_dict_test)

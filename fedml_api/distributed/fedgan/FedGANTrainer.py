@@ -1,7 +1,7 @@
 from .utils import transform_tensor_to_list
 
 
-class FedGANTrainer(object):
+class FedGANTrainer:
 
     def __init__(self, client_index, train_data_local_dict, train_data_local_num_dict, test_data_local_dict,
                  train_data_num, device, args, model_trainer):
@@ -28,7 +28,7 @@ class FedGANTrainer(object):
         self.local_sample_number = self.train_data_local_num_dict[client_index]
         # self.test_local = self.test_data_local_dict[client_index]
 
-    def train(self, round_idx = None):
+    def train(self, round_idx=None):
         self.args.round_idx = round_idx
         self.trainer.train(self.train_local, self.device, self.args)
 
@@ -47,6 +47,6 @@ class FedGANTrainer(object):
         # test data
         test_metrics = self.trainer.test(self.test_local, self.device, self.args)
         test_tot_correct, test_num_sample, test_loss = test_metrics['test_correct'], \
-                                                          test_metrics['test_total'], test_metrics['test_loss']
+                                                       test_metrics['test_total'], test_metrics['test_loss']
 
         return train_tot_correct, train_loss, train_num_sample, test_tot_correct, test_loss, test_num_sample

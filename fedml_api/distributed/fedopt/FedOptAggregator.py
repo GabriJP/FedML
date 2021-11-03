@@ -13,9 +13,8 @@ from .utils import transform_list_to_tensor
 
 class FedOptAggregator(object):
 
-    def __init__(self, train_global, test_global, all_train_data_num,
-                 train_data_local_dict, test_data_local_dict, train_data_local_num_dict, worker_num, device,
-                 args, model_trainer):
+    def __init__(self, train_global, test_global, all_train_data_num, train_data_local_dict, test_data_local_dict,
+                 train_data_local_num_dict, worker_num, device, args, model_trainer):
         self.trainer = model_trainer
 
         self.args = args
@@ -39,9 +38,10 @@ class FedOptAggregator(object):
 
     def _instantiate_opt(self):
         return OptRepo.name2cls(self.args.server_optimizer)(
-            filter(lambda p: p.requires_grad, self.get_model_params()), lr=self.args.server_lr, momentum=self.args.server_momentum,
+            filter(lambda p: p.requires_grad, self.get_model_params()), lr=self.args.server_lr,
+            momentum=self.args.server_momentum,
         )
-        
+
     def get_model_params(self):
         # return model parameters in type of generator
         return self.trainer.model.parameters()
@@ -54,7 +54,7 @@ class FedOptAggregator(object):
         self.trainer.set_model_params(model_parameters)
 
     def add_local_trained_result(self, index, model_params, sample_num):
-        logging.info("add_model. index = %d" % index)
+        logging.info(f"add_model. index = {index:d}")
         self.model_dict[index] = model_params
         self.sample_num_dict[index] = sample_num
         self.flag_client_model_uploaded_dict[index] = True
@@ -78,7 +78,7 @@ class FedOptAggregator(object):
             model_list.append((self.sample_num_dict[idx], self.model_dict[idx]))
             training_num += self.sample_num_dict[idx]
 
-        logging.info("len of self.model_dict[idx] = " + str(len(self.model_dict)))
+        logging.info(f"len of self.model_dict[idx] = {len(self.model_dict)}")
 
         # logging.info("################aggregate: %d" % len(model_list))
         (num0, averaged_params) = model_list[0]
@@ -103,7 +103,7 @@ class FedOptAggregator(object):
         self.opt.step()
 
         end_time = time.time()
-        logging.info("aggregate time cost: %d" % (end_time - start_time))
+        logging.info(f"aggregate time cost: {end_time - start_time:d}")
         return self.get_global_model_params()
 
     def set_model_global_grads(self, new_state):
@@ -113,7 +113,7 @@ class FedOptAggregator(object):
             for parameter, new_parameter in zip(
                     self.trainer.model.parameters(), new_model.parameters()
             ):
-                parameter.grad = parameter.data - new_parameter.data
+                parameter.grad = parameter.main_data - new_parameter.main_data
                 # because we go to the opposite direction of the gradient
         model_state_dict = self.trainer.model.state_dict()
         new_model_state_dict = new_model.state_dict()
@@ -129,25 +129,26 @@ class FedOptAggregator(object):
             num_clients = min(client_num_per_round, client_num_in_total)
             np.random.seed(round_idx)  # make sure for each comparison, we are selecting the same clients each round
             client_indexes = np.random.choice(range(client_num_in_total), num_clients, replace=False)
-        logging.info("client_indexes = %s" % str(client_indexes))
+        logging.info(f"client_indexes = {client_indexes}")
         return client_indexes
 
     def _generate_validation_set(self, num_samples=10000):
         if self.args.dataset.startswith("stackoverflow"):
-            test_data_num  = len(self.test_global.dataset)
+            test_data_num = len(self.test_global.dataset)
             sample_indices = random.sample(range(test_data_num), min(num_samples, test_data_num))
             subset = torch.utils.data.Subset(self.test_global.dataset, sample_indices)
-            sample_testset = torch.utils.data.DataLoader(subset, batch_size=self.args.batch_size)
+            sample_testset = torch.utils.data.LocalDataLoader(subset, batch_size=self.args.batch_size)
             return sample_testset
         else:
             return self.test_global
 
     def test_on_server_for_all_clients(self, round_idx):
-        if self.trainer.test_on_the_server(self.train_data_local_dict, self.test_data_local_dict, self.device, self.args):
+        if self.trainer.test_on_the_server(self.train_data_local_dict, self.test_data_local_dict, self.device,
+                                           self.args):
             return
 
         if round_idx % self.args.frequency_of_the_test == 0 or round_idx == self.args.comm_round - 1:
-            logging.info("################local_test_on_all_clients : {}".format(round_idx))
+            logging.info(f"################local_test_on_all_clients : {round_idx}")
             train_num_samples = []
             train_tot_corrects = []
             train_losses = []
@@ -158,11 +159,12 @@ class FedOptAggregator(object):
             for client_idx in range(self.args.client_num_in_total):
                 # train data
                 metrics = self.trainer.test(self.train_data_local_dict[client_idx], self.device, self.args)
-                train_tot_correct, train_num_sample, train_loss = metrics['test_correct'], metrics['test_total'], metrics['test_loss']
+                train_tot_correct, train_num_sample, train_loss = metrics['test_correct'], metrics['test_total'], \
+                                                                  metrics['test_loss']
                 train_tot_corrects.append(copy.deepcopy(train_tot_correct))
                 train_num_samples.append(copy.deepcopy(train_num_sample))
                 train_losses.append(copy.deepcopy(train_loss))
-                
+
                 """
                 Note: CI environment is CPU-based computing. 
                 The training speed for RNN training is to slow in this setting, so we only test a client to make sure there is no programming error.

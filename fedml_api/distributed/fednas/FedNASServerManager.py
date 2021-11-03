@@ -32,7 +32,7 @@ class FedNASServerManager(ServerManager):
         message = Message(MyMessage.MSG_TYPE_S2C_INIT_CONFIG, self.get_sender_id(), process_id)
         message.add_params(MyMessage.MSG_ARG_KEY_MODEL_PARAMS, global_model_params)
         message.add_params(MyMessage.MSG_ARG_KEY_ARCH_PARAMS, global_arch_params)
-        logging.info("MSG_TYPE_S2C_INIT_CONFIG. receiver: " + str(process_id))
+        logging.info(f"MSG_TYPE_S2C_INIT_CONFIG. receiver: {process_id}")
         self.send_message(message)
 
     def __handle_msg_server_receive_model_from_client_opt_send(self, msg_params):
@@ -46,7 +46,7 @@ class FedNASServerManager(ServerManager):
         self.aggregator.add_local_trained_result(process_id - 1, model_params, arch_params, local_sample_number,
                                                  train_acc, train_loss)
         b_all_received = self.aggregator.check_whether_all_receive()
-        logging.info("b_all_received = " + str(b_all_received))
+        logging.info(f"b_all_received = {b_all_received}")
         if b_all_received:
             if self.args.stage == "search":
                 global_model_params, global_arch_params = self.aggregator.aggregate()
@@ -74,5 +74,5 @@ class FedNASServerManager(ServerManager):
         message = Message(MyMessage.MSG_TYPE_S2C_SYNC_MODEL_TO_CLIENT, 0, process_id)
         message.add_params(MyMessage.MSG_ARG_KEY_MODEL_PARAMS, global_model_params)
         message.add_params(MyMessage.MSG_ARG_KEY_ARCH_PARAMS, global_arch_params)
-        logging.info("__send_model_to_client_message. MSG_TYPE_S2C_SYNC_MODEL_TO_CLIENT. receiver: " + str(process_id))
+        logging.info(f"__send_model_to_client_message. MSG_TYPE_S2C_SYNC_MODEL_TO_CLIENT. receiver: {process_id}")
         self.send_message(message)

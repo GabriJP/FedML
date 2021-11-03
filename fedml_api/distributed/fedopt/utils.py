@@ -15,6 +15,7 @@ def transform_tensor_to_list(model_params):
         model_params[k] = model_params[k].detach().numpy().tolist()
     return model_params
 
+
 def post_complete_message_to_sweep_process(args):
     pipe_path = "./tmp/fedml"
     os.system("mkdir ./tmp/; touch ./tmp/fedml")

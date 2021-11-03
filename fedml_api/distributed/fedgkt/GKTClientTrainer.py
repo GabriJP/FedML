@@ -20,17 +20,16 @@ class GKTClientTrainer(object):
         self.device = device
         self.client_model = client_model
 
-        logging.info("client device = " + str(self.device))
+        logging.info(f"client device = {self.device}")
         self.client_model.to(self.device)
 
         self.model_params = self.master_params = self.client_model.parameters()
 
         optim_params = utils.bnwd_optim_params(self.client_model, self.model_params,
-                                                            self.master_params) if args.no_bn_wd else self.master_params
+                                               self.master_params) if args.no_bn_wd else self.master_params
 
         if self.args.optimizer == "SGD":
-            self.optimizer = torch.optim.SGD(optim_params, lr=self.args.lr, momentum=0.9,
-                                             nesterov=True,
+            self.optimizer = torch.optim.SGD(optim_params, lr=self.args.lr, momentum=0.9, nesterov=True,
                                              weight_decay=self.args.wd)
         elif self.args.optimizer == "Adam":
             self.optimizer = optim.Adam(optim_params, lr=self.args.lr, weight_decay=0.0001, amsgrad=True)
@@ -83,9 +82,10 @@ class GKTClientTrainer(object):
                     loss.backward()
                     self.optimizer.step()
 
-                    logging.info('client {} - Update Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                        self.client_index, epoch, batch_idx * len(images), len(self.local_training_data.dataset),
-                                                  100. * batch_idx / len(self.local_training_data), loss.item()))
+                    logging.info(
+                        f'client {self.client_index} - Update Epoch: {epoch} '
+                        f'[{batch_idx * len(images)}/{len(self.local_training_data.dataset)} '
+                        f'({100. * batch_idx / len(self.local_training_data):.0f}%)]\tLoss: {loss.item():.6f}')
                     batch_loss.append(loss.item())
                 epoch_loss.append(sum(batch_loss) / len(batch_loss))
 

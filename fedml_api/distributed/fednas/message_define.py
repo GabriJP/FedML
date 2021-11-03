@@ -1,4 +1,4 @@
-class MyMessage(object):
+class MyMessage:
     # server to client
     MSG_TYPE_S2C_INIT_CONFIG = 1
     MSG_TYPE_S2C_SYNC_MODEL_TO_CLIENT = 2

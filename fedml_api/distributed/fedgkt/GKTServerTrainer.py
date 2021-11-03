@@ -34,7 +34,7 @@ class GKTServerTrainer(object):
         self.model_params = self.master_params = self.model_global.parameters()
 
         optim_params = utils.bnwd_optim_params(self.model_global, self.model_params,
-                                                            self.master_params) if args.no_bn_wd else self.master_params
+                                               self.master_params) if args.no_bn_wd else self.master_params
 
         if self.args.optimizer == "SGD":
             self.optimizer = torch.optim.SGD(optim_params, lr=self.args.lr, momentum=0.9,
@@ -78,7 +78,7 @@ class GKTServerTrainer(object):
 
     def add_local_trained_result(self, index, extracted_feature_dict, logits_dict, labels_dict,
                                  extracted_feature_dict_test, labels_dict_test):
-        logging.info("add_model. index = %d" % index)
+        logging.info(f"add_model. index = {index:d}")
         self.client_extracted_feauture_dict[index] = extracted_feature_dict
         self.client_logits_dict[index] = logits_dict
         self.client_labels_dict[index] = labels_dict
@@ -192,7 +192,7 @@ class GKTServerTrainer(object):
 
     def train_and_eval(self, round_idx, epochs):
         for epoch in range(epochs):
-            logging.info("train_and_eval. round_idx = %d, epoch = %d" % (round_idx, epoch))
+            logging.info(f"train_and_eval. round_idx = {round_idx:d}, epoch = {epoch:d}")
             train_metrics = self.train_large_model_on_the_server()
 
             if epoch == epochs - 1:
@@ -285,7 +285,7 @@ class GKTServerTrainer(object):
                          'train_accTop1': accTop1_avg.value(),
                          'train_accTop5': accTop5_avg.value()}
 
-        metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in train_metrics.items())
+        metrics_string = " ; ".join(f"{k}: {v:05.3f}" for k, v in train_metrics.items())
         logging.info("- Train metrics: " + metrics_string)
         return train_metrics
 
@@ -320,6 +320,6 @@ class GKTServerTrainer(object):
                         'test_accTop1': accTop1_avg.value(),
                         'test_accTop5': accTop5_avg.value()}
 
-        metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in test_metrics.items())
-        logging.info("- Test  metrics: " + metrics_string)
+        metrics_string = " ; ".join(f"{k}: {v:05.3f}" for k, v in test_metrics.items())
+        logging.info(f"- Test  metrics: {metrics_string}")
         return test_metrics

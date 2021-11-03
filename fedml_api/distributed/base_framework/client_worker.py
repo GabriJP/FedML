@@ -1,4 +1,4 @@
-class BaseClientWorker(object):
+class BaseClientWorker:
     def __init__(self, client_index):
         self.client_index = client_index
         self.updated_information = 0

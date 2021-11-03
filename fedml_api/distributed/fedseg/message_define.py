@@ -1,4 +1,4 @@
-class MyMessage(object):
+class MyMessage:
     """
         message type definition
     """
@@ -22,4 +22,3 @@ class MyMessage(object):
     MSG_ARG_KEY_CLIENT_INDEX = "client_idx"
     MSG_ARG_KEY_TRAIN_EVALUATION_METRICS = "train_evaluation_metrics"
     MSG_ARG_KEY_TEST_EVALUATION_METRICS = "test_evaluation_metrics"
-

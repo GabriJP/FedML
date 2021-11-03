@@ -14,8 +14,7 @@ class BaseClientManager(ClientManager):
         super().run()
 
     def register_message_receive_handlers(self):
-        self.register_message_receive_handler(MyMessage.MSG_TYPE_S2C_INIT_CONFIG,
-                                              self.handle_message_init)
+        self.register_message_receive_handler(MyMessage.MSG_TYPE_S2C_INIT_CONFIG, self.handle_message_init)
         self.register_message_receive_handler(MyMessage.MSG_TYPE_S2C_INFORMATION,
                                               self.handle_message_receive_model_from_server)
 

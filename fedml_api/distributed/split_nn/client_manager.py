@@ -1,8 +1,8 @@
+import logging
+
 from fedml_api.distributed.split_nn.message_define import MyMessage
 from fedml_core.distributed.client.client_manager import ClientManager
 from fedml_core.distributed.communication.message import Message
-
-import logging
 
 
 class SplitNNClientManager(ClientManager):
@@ -28,7 +28,7 @@ class SplitNNClientManager(ClientManager):
 
     def handle_message_semaphore(self, msg_params):
         # no point in checking the semaphore message
-        logging.info("Starting training at node {}".format(self.trainer.rank))
+        logging.info(f"Starting training at node {self.trainer.rank}")
         self.trainer.train_mode()
         self.run_forward_pass()
 
@@ -45,10 +45,9 @@ class SplitNNClientManager(ClientManager):
         self.send_validation_over_to_server(self.trainer.SERVER_RANK)
         self.round_idx += 1
         if self.round_idx == self.trainer.MAX_EPOCH_PER_NODE and self.trainer.rank == self.trainer.MAX_RANK:
-                self.send_finish_to_server(self.trainer.SERVER_RANK)
+            self.send_finish_to_server(self.trainer.SERVER_RANK)
         else:
-            logging.info("sending semaphore from {} to {}".format(self.trainer.rank,
-                                                                  self.trainer.node_right))
+            logging.info(f"sending semaphore from {self.trainer.rank} to {self.trainer.node_right}")
             self.send_semaphore_to_client(self.trainer.node_right)
 
         if self.round_idx == self.trainer.MAX_EPOCH_PER_NODE:
@@ -58,7 +57,7 @@ class SplitNNClientManager(ClientManager):
         grads = msg_params.get(MyMessage.MSG_ARG_KEY_GRADS)
         self.trainer.backward_pass(grads)
         if self.trainer.batch_idx == len(self.trainer.trainloader):
-            logging.info("Epoch over at node {}".format(self.rank))
+            logging.info(f"Epoch over at node {self.rank}")
             self.round_idx += 1
             self.run_eval()
         else:
@@ -74,7 +73,7 @@ class SplitNNClientManager(ClientManager):
         self.send_message(message)
 
     def send_validation_signal_to_server(self, receive_id):
-        message = Message(MyMessage.MSG_TYPE_C2S_VALIDATION_MODE, self.get_sender_id(), receive_id) 
+        message = Message(MyMessage.MSG_TYPE_C2S_VALIDATION_MODE, self.get_sender_id(), receive_id)
         self.send_message(message)
 
     def send_validation_over_to_server(self, receive_id):

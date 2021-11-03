@@ -29,9 +29,9 @@ class BaseCentralManager(ServerManager):
         self.aggregator.add_client_local_result(sender_id - 1, client_local_result)
         b_all_received = self.aggregator.check_whether_all_receive()
 
-        logging.info("b_all_received = " + str(b_all_received))
+        logging.info(f"b_all_received = {b_all_received}")
         if b_all_received:
-            logging.info("**********************************ROUND INDEX = " + str(self.round_idx))
+            logging.info(f"**********************************ROUND INDEX = {self.round_idx}")
             global_result = self.aggregator.aggregate()
 
             # start the next round

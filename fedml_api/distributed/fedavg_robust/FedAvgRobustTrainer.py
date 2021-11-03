@@ -8,8 +8,7 @@ from fedml_api.distributed.fedavg.utils import transform_tensor_to_list
 
 class FedAvgRobustTrainer(object):
     def __init__(self, client_index, train_data_local_dict, train_data_local_num_dict, train_data_num, device, model,
-                 poisoned_train_loader, num_dps_poisoned_dataset,
-                 args):
+                 poisoned_train_loader, num_dps_poisoned_dataset, args):
         # TODO(@hwang595): double check if this makes sense with Chaoyang
         # here we always assume the client with `client_index=1` as the attacker
         self.client_index = client_index
@@ -22,7 +21,7 @@ class FedAvgRobustTrainer(object):
 
         if self.client_index == 1:
             self.train_local = self.poisoned_train_loader
-            self.local_sample_number = self.num_dps_poisoned_dataset        
+            self.local_sample_number = self.num_dps_poisoned_dataset
         else:
             self.train_local = self.train_data_local_dict[client_index]
             self.local_sample_number = self.train_data_local_num_dict[client_index]
@@ -48,12 +47,12 @@ class FedAvgRobustTrainer(object):
 
     def update_dataset(self, client_index):
         self.client_index = client_index
-        if self.client_index == 1: # TODO(@hwang595): double check if this makes sense with Chaoyang, we make it the attacker
+        if self.client_index == 1:  # TODO(@hwang595): double check if this makes sense with Chaoyang, we make it the attacker
             self.train_local = self.poisoned_train_loader
             self.local_sample_number = self.num_dps_poisoned_dataset
         else:
             self.train_local = self.train_data_local_dict[client_index]
-            self.local_sample_number = self.train_data_local_num_dict[client_index]            
+            self.local_sample_number = self.train_data_local_num_dict[client_index]
 
     def train(self):
         self.model.to(self.device)
@@ -74,8 +73,8 @@ class FedAvgRobustTrainer(object):
                 batch_loss.append(loss.item())
             if len(batch_loss) > 0:
                 epoch_loss.append(sum(batch_loss) / len(batch_loss))
-                logging.info('(client {}. Local Training Epoch: {} \tLoss: {:.6f}'.format(self.client_index,
-                                                                epoch, sum(epoch_loss) / len(epoch_loss)))
+                logging.info(f'(client {self.client_index}. Local Training Epoch: {epoch} \t'
+                             f'Loss: {sum(epoch_loss) / len(epoch_loss):.6f}')
 
         weights = self.model.cpu().state_dict()
 

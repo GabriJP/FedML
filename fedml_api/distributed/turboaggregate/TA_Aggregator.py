@@ -2,17 +2,18 @@ import copy
 import logging
 import time
 
+import numpy as np
 import torch
 import wandb
-import numpy as np
 from torch import nn
 
 from fedml_api.distributed.turboaggregate.utils import transform_list_to_tensor
 
 
-class TA_Aggregator(object):
+class TA_Aggregator:
     def __init__(self, train_global, test_global, all_train_data_num,
-                 train_data_local_dict, test_data_local_dict, train_data_local_num_dict, worker_num, device, model, args):
+                 train_data_local_dict, test_data_local_dict, train_data_local_num_dict, worker_num, device, model,
+                 args):
         self.train_global = train_global
         self.test_global = test_global
         self.all_train_data_num = all_train_data_num
@@ -40,7 +41,7 @@ class TA_Aggregator(object):
         return self.model.state_dict()
 
     def add_local_trained_result(self, index, model_params, sample_num):
-        logging.info("add_model. index = %d" % index)
+        logging.info(f"add_model. index = {index:d}")
         self.model_dict[index] = model_params
         self.sample_num_dict[index] = sample_num
         self.flag_client_model_uploaded_dict[index] = True
@@ -64,7 +65,7 @@ class TA_Aggregator(object):
             model_list.append((self.sample_num_dict[idx], self.model_dict[idx]))
             training_num += self.sample_num_dict[idx]
 
-        logging.info("len of self.model_dict[idx] = " + str(len(self.model_dict)))
+        logging.info(f"len of self.model_dict[idx] = {len(self.model_dict)}")
 
         # logging.info("################aggregate: %d" % len(model_list))
         (num0, averaged_params) = model_list[0]
@@ -81,7 +82,7 @@ class TA_Aggregator(object):
         self.model.load_state_dict(averaged_params)
 
         end_time = time.time()
-        logging.info("aggregate time cost: %d" % (end_time - start_time))
+        logging.info(f"aggregate time cost: {end_time - start_time:d}")
         return averaged_params
 
     def client_sampling(self, round_idx, client_num_in_total, client_num_per_round):
@@ -91,12 +92,12 @@ class TA_Aggregator(object):
             num_clients = min(client_num_per_round, client_num_in_total)
             np.random.seed(round_idx)  # make sure for each comparison, we are selecting the same clients each round
             client_indexes = np.random.choice(range(client_num_in_total), num_clients, replace=False)
-        logging.info("client_indexes = %s" % str(client_indexes))
+        logging.info(f"client_indexes = {client_indexes}")
         return client_indexes
 
     def test_on_all_clients(self, round_idx):
         if round_idx % self.args.frequency_of_the_test == 0 or round_idx == self.args.comm_round - 1:
-            logging.info("################local_test_on_all_clients : {}".format(round_idx))
+            logging.info(f"################local_test_on_all_clients : {round_idx}")
             train_num_samples = []
             train_tot_corrects = []
             train_losses = []

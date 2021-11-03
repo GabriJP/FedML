@@ -1,15 +1,9 @@
-import logging
-
 from mpi4py import MPI
 
 from .FedGANAggregator import FedGANAggregator
 from .FedGANTrainer import FedGANTrainer
 from .FedGanClientManager import FedGANClientManager
 from .FedGanServerManager import FedGANServerManager
-
-from ...standalone.fedavg.my_model_trainer_classification import MyModelTrainer as MyModelTrainerCLS
-from ...standalone.fedavg.my_model_trainer_nwp import MyModelTrainer as MyModelTrainerNWP
-from ...standalone.fedavg.my_model_trainer_tag_prediction import MyModelTrainer as MyModelTrainerTAG
 
 
 def FedML_init():
@@ -20,8 +14,10 @@ def FedML_init():
     return comm, process_id, worker_number
 
 
-def FedML_FedGan_distributed(process_id, worker_number, device, comm, model, train_data_num, train_data_global, test_data_global,
-                             train_data_local_num_dict, train_data_local_dict, test_data_local_dict, args, model_trainer=None, preprocessed_sampling_lists=None):
+def FedML_FedGan_distributed(process_id, worker_number, device, comm, model, train_data_num, train_data_global,
+                             test_data_global,
+                             train_data_local_num_dict, train_data_local_dict, test_data_local_dict, args,
+                             model_trainer=None, preprocessed_sampling_lists=None):
     if process_id == 0:
         init_server(args, device, comm, process_id, worker_number, model, train_data_num, train_data_global,
                     test_data_global, train_data_local_dict, test_data_local_dict, train_data_local_num_dict,
@@ -32,7 +28,8 @@ def FedML_FedGan_distributed(process_id, worker_number, device, comm, model, tra
 
 
 def init_server(args, device, comm, rank, size, model, train_data_num, train_data_global, test_data_global,
-                train_data_local_dict, test_data_local_dict, train_data_local_num_dict, model_trainer, preprocessed_sampling_lists=None):
+                train_data_local_dict, test_data_local_dict, train_data_local_num_dict, model_trainer,
+                preprocessed_sampling_lists=None):
     if model_trainer is None:
         pass
 
@@ -47,7 +44,7 @@ def init_server(args, device, comm, rank, size, model, train_data_num, train_dat
 
     # start the distributed training
     backend = args.backend
-    if preprocessed_sampling_lists is None :
+    if preprocessed_sampling_lists is None:
         server_manager = FedGANServerManager(args, aggregator, comm, rank, size, backend)
     else:
         server_manager = FedGANServerManager(args, aggregator, comm, rank, size, backend,

@@ -13,7 +13,8 @@ def FedML_init():
     return comm, process_id, worker_number
 
 
-def FedML_VFL_distributed(process_id, worker_number, comm, args, device, guest_data, guest_model, host_data, host_model):
+def FedML_VFL_distributed(process_id, worker_number, comm, args, device, guest_data, guest_model, host_data,
+                          host_model):
     if process_id == 0:
         init_guest_worker(args, comm, process_id, worker_number, device, guest_data, guest_model)
     else:
@@ -25,7 +26,8 @@ def init_guest_worker(args, comm, process_id, size, device, guest_data, guest_mo
     model_feature_extractor, model_classifier = guest_model
 
     client_num = size - 1
-    guest_trainer = GuestTrainer(client_num, device, Xa_train, y_train, Xa_test, y_test, model_feature_extractor, model_classifier, args)
+    guest_trainer = GuestTrainer(client_num, device, Xa_train, y_train, Xa_test, y_test, model_feature_extractor,
+                                 model_classifier, args)
 
     server_manager = GuestManager(args, comm, process_id, size, guest_trainer)
     server_manager.run()

@@ -23,7 +23,6 @@ def FedML_FedGKT_distributed(process_id, worker_number, device, comm, model, tra
 
 
 def init_server(args, device, comm, rank, size, model):
-
     # aggregator
     client_num = size - 1
     server_trainer = GKTServerTrainer(client_num, device, model, args)

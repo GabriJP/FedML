@@ -2,6 +2,9 @@ import logging
 import os
 import sys
 
+from .message_define import MyMessage
+from .utils import transform_list_to_tensor, post_complete_message_to_sweep_process
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML")))
 
@@ -11,8 +14,6 @@ try:
 except ImportError:
     from FedML.fedml_core.distributed.client.client_manager import ClientManager
     from FedML.fedml_core.distributed.communication.message import Message
-from .message_define import MyMessage
-from .utils import transform_list_to_tensor, post_complete_message_to_sweep_process
 
 
 class FedProxClientManager(ClientManager):
@@ -55,7 +56,7 @@ class FedProxClientManager(ClientManager):
         model_params = transform_list_to_tensor(model_params)
 
         # if self.args.is_mobile == 1:
-            # model_params = transform_list_to_tensor(model_params)
+        # model_params = transform_list_to_tensor(model_params)
 
         self.trainer.update_model(model_params)
         self.trainer.update_dataset(int(client_index))
@@ -72,6 +73,6 @@ class FedProxClientManager(ClientManager):
         self.send_message(message)
 
     def __train(self):
-        logging.info("#######training########### round_id = %d" % self.round_idx)
+        logging.info(f"#######training########### round_id = {self.round_idx:d}")
         weights, local_sample_num = self.trainer.train(self.round_idx)
         self.send_model_to_server(0, weights, local_sample_num)

@@ -47,10 +47,8 @@ class MyModelTrainer(ModelTrainer):
 
             if len(batch_loss) > 0:
                 epoch_loss.append(sum(batch_loss) / len(batch_loss))
-                logging.info('(Trainer_ID {}. Local Training Epoch: {} \tLoss: {:.6f}'.format(self.id,
-                                                                                              epoch,
-                                                                                              sum(epoch_loss) / len(
-                                                                                                  epoch_loss)))
+                logging.info(f'(Trainer_ID {self.id}. Local Training Epoch: {epoch} \t'
+                             f'Loss: {sum(epoch_loss) / len(epoch_loss):.6f}')
 
     def test(self, test_data, device, args):
         model = self.model
@@ -71,14 +69,13 @@ class MyModelTrainer(ModelTrainer):
 
                 test_acc += correct.item()
                 test_loss += loss.item() * target.size(0)
-                
-                if len(target.size()) == 1: # 
+
+                if len(target.size()) == 1:  # 
                     test_total += target.size(0)
-                elif len(target.size()) == 2: # for tasks of next word prediction
+                elif len(target.size()) == 2:  # for tasks of next word prediction
                     test_total += target.size(0) * target.size(1)
 
         return test_acc, test_total, test_loss
-
 
     def test_on_the_server(self, train_data_local_dict, test_data_local_dict, device, args=None) -> bool:
         return False

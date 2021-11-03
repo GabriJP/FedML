@@ -1,11 +1,9 @@
 import logging
 
-import torch
-from torch import nn
-from torchvision.utils import save_image
-from matplotlib.pyplot import imshow, imsave
 import numpy as np
-from torchvision import transforms
+import torch
+from matplotlib.pyplot import imsave
+from torch import nn
 
 try:
     from fedml_core.trainer.model_trainer import ModelTrainer
@@ -73,25 +71,20 @@ class MyModelTrainer(ModelTrainer):
             if len(batch_g_loss) > 0:
                 epoch_g_loss.append(sum(batch_g_loss) / len(batch_g_loss))
                 epoch_d_loss.append(sum(batch_d_loss) / len(batch_d_loss))
-                logging.info('(Trainer_ID {}. Local Generator Training Epoch: {} \tLoss: {:.6f}'.format(self.id,
-                                                                                              epoch,
-                                                                                              sum(epoch_g_loss) / len(
-                                                                                                  epoch_g_loss)))
-                logging.info('(Trainer_ID {}. Local Discriminator Training Epoch: {} \tLoss: {:.6f}'.format(self.id,
-                                                                                              epoch,
-                                                                                              sum(epoch_d_loss) / len(
-                                                                                                  epoch_d_loss)))
+                logging.info(f'(Trainer_ID {self.id}. Local Generator Training Epoch: {epoch} \t'
+                             f'Loss: {sum(epoch_g_loss) / len(epoch_g_loss):.6f}')
+                logging.info(f'(Trainer_ID {self.id}. Local Discriminator Training Epoch: {epoch} \t'
+                             f'Loss: {sum(epoch_d_loss) / len(epoch_d_loss):.6f}')
             netg.eval()
             z = torch.randn(100, 100).to(device)
             y_hat = netg(z).view(100, 28, 28)  # (100, 28, 28)
-            result = y_hat.cpu().data.numpy()
+            result = y_hat.cpu().main_data.numpy()
             img = np.zeros([280, 280])
             for j in range(10):
                 img[j * 28:(j + 1) * 28] = np.concatenate([x for x in result[j * 10:(j + 1) * 10]], axis=-1)
 
-            imsave('samples/{}_{}.jpg'.format(self.id, epoch), img, cmap='gray')
+            imsave(f'samples/{self.id}_{epoch}.jpg', img, cmap='gray')
             netg.train()
-
 
     def test(self, test_data, device, args):
         pass
