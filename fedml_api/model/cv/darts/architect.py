@@ -186,7 +186,7 @@ class Architect(object):
 
         # equation (7)
         for g, ig in zip(dalpha, implicit_grads):
-            g.data.sub_(eta, ig.data)
+            g.data.sub_(eta, ig.main_data)
 
         arch_parameters = self.model.module.arch_parameters() if self.is_multi_gpu else self.model.arch_parameters()
 
@@ -231,7 +231,7 @@ class Architect(object):
         R = r / _concat(vector).norm()
         parameters = self.model.module.parameters() if self.is_multi_gpu else self.model.parameters()
         for p, v in zip(parameters, vector):
-            p.data.add_(R, v)  # w+ in equation (8) # inplace operation
+            p.main_data.add_(R, v)  # w+ in equation (8) # inplace operation
 
         # get alpha gradient based on w+ in training dataset
         logits = self.model(input)
@@ -242,7 +242,7 @@ class Architect(object):
 
         parameters = self.model.module.parameters() if self.is_multi_gpu else self.model.parameters()
         for p, v in zip(parameters, vector):
-            p.data.sub_(2 * R, v)  # w- in equation (8)
+            p.main_data.sub_(2 * R, v)  # w- in equation (8)
 
         # get alpha gradient based on w- in training dataset
         logits = self.model(input)
@@ -254,7 +254,7 @@ class Architect(object):
         # restore w- to w
         parameters = self.model.module.parameters() if self.is_multi_gpu else self.model.parameters()
         for p, v in zip(parameters, vector):
-            p.data.add_(R, v)
+            p.main_data.add_(R, v)
 
         return [(x - y).div_(2 * R) for x, y in zip(grads_p, grads_n)]
 
@@ -284,11 +284,11 @@ class Architect(object):
 
         # equation (7)
         for g, ig in zip(grad_alpha_wrt_val_on_w_prime, implicit_grads):
-            g.data.sub_(eta, ig.data)
+            g.data.sub_(eta, ig.main_data)
 
         grad_alpha_term = unrolled_model.new_arch_parameters()
         for g_new, g in zip(grad_alpha_term, grad_alpha_wrt_val_on_w_prime):
-            g_new.data.copy_(g.data)
+            g_new.main_data.copy_(g.data)
 
         """(8)"""
         #unrolled_model_train = self._compute_unrolled_model(input_train, target_train, eta, network_optimizer)
@@ -309,20 +309,20 @@ class Architect(object):
 
         # equation (7)
         for g, ig in zip(grad_alpha_wrt_train_on_w_prime, implicit_grads):
-            g.data.sub_(eta, ig.data)
+            g.data.sub_(eta, ig.main_data)
 
         for g_train, g_val in zip(grad_alpha_wrt_train_on_w_prime, grad_alpha_term):
             # g_val.data.copy_(lambda_valid_regularizer * g_val.data)
             # g_val.data.add_(g_train.data.mul(lambda_train_regularizer))
             temp = g_train.data.mul(lambda_train_regularizer)
-            g_val.data.add_(temp)
+            g_val.main_data.add_(temp)
 
         arch_parameters = self.model.module.arch_parameters() if self.is_multi_gpu else self.model.arch_parameters()
         for v, g in zip(arch_parameters, grad_alpha_term):
             if v.grad is None:
-                v.grad = Variable(g.data)
+                v.grad = Variable(g.main_data)
             else:
-                v.grad.data.copy_(g.data)
+                v.grad.data.copy_(g.main_data)
 
         self.optimizer.step()
 
@@ -352,11 +352,11 @@ class Architect(object):
 
         # equation (7)
         for g, ig in zip(grad_alpha_wrt_val_on_w_prime, implicit_grads):
-            g.data.sub_(eta, ig.data)
+            g.data.sub_(eta, ig.main_data)
 
         grad_alpha_term = unrolled_model.new_arch_parameters()
         for g_new, g in zip(grad_alpha_term, grad_alpha_wrt_val_on_w_prime):
-            g_new.data.copy_(g.data)
+            g_new.main_data.copy_(g.data)
 
         """(8)"""
         #unrolled_model_train = self._compute_unrolled_model(input_train, target_train, eta, network_optimizer)
@@ -377,17 +377,17 @@ class Architect(object):
 
         # equation (7)
         for g, ig in zip(grad_alpha_wrt_train_on_w_prime, implicit_grads):
-            g.data.sub_(eta, ig.data)
+            g.data.sub_(eta, ig.main_data)
 
         for g_train, g_val in zip(grad_alpha_wrt_train_on_w_prime, grad_alpha_term):
-            g_val.data.copy_(lambda_valid_regularizer * g_val.data)
-            g_val.data.add_(g_train.data.mul(lambda_train_regularizer))
+            g_val.main_data.copy_(lambda_valid_regularizer * g_val.main_data)
+            g_val.main_data.add_(g_train.data.mul(lambda_train_regularizer))
 
         arch_parameters = self.model.module.arch_parameters() if self.is_multi_gpu else self.model.arch_parameters()
         for v, g in zip(arch_parameters, grad_alpha_term):
             if v.grad is None:
-                v.grad = Variable(g.data)
+                v.grad = Variable(g.main_data)
             else:
-                v.grad.data.copy_(g.data)
+                v.grad.data.copy_(g.main_data)
 
         self.optimizer.step()

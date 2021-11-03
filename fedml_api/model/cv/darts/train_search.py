@@ -135,7 +135,7 @@ def main():
         momentum=args.momentum,
         weight_decay=args.weight_decay)
 
-    train_transform, valid_transform = utils._data_transforms_cifar10(args)
+    train_transform, valid_transform = utils._data_transforms(args)
 
     # will cost time to download the data
     train_data = dset.CIFAR10(root=args.data, train=True, download=True, transform=train_transform)
@@ -144,12 +144,12 @@ def main():
     indices = list(range(num_train))
     split = int(np.floor(args.train_portion * num_train))  # split index
 
-    train_queue = torch.utils.data.DataLoader(
+    train_queue = torch.utils.data.LocalDataLoader(
         train_data, batch_size=args.batch_size * len(gpus),
         sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[:split]),
         pin_memory=True, num_workers=2)
 
-    valid_queue = torch.utils.data.DataLoader(
+    valid_queue = torch.utils.data.LocalDataLoader(
         train_data, batch_size=args.batch_size * len(gpus),
         sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[split:num_train]),
         pin_memory=True, num_workers=2)

@@ -81,7 +81,7 @@ class InnerCell(nn.Module):
         for i in range(self._steps):
             for j in range(2 + i):
                 stride = 2 if reduction and j < 2 else 1
-                weight = weights.data[offset + j]
+                weight = weights.main_data[offset + j]
                 choice = keys[weight.argmax()]
                 op = OPS[choice](C, stride, False)
                 if 'pool' in choice:

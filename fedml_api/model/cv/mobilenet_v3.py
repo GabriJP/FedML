@@ -24,12 +24,12 @@ def _weights_init(m):
         if m.bias is not None:
             torch.nn.init.zeros_(m.bias)
     elif isinstance(m, nn.BatchNorm2d):
-        m.weight.data.fill_(1)
-        m.bias.data.zero_()
+        m.weight.main_data.fill_(1)
+        m.bias.main_data.zero_()
     elif isinstance(m, nn.Linear):
         n = m.weight.size(1)
         m.weight.data.normal_(0, 0.01)
-        m.bias.data.zero_()
+        m.bias.main_data.zero_()
 
 
 class h_sigmoid(nn.Module):

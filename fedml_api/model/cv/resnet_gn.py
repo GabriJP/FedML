@@ -132,17 +132,17 @@ class ResNet(nn.Module):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
                 m.weight.data.normal_(0, math.sqrt(2. / n))
             elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
+                m.weight.main_data.fill_(1)
+                m.bias.main_data.zero_()
             elif isinstance(m, GroupNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
+                m.weight.main_data.fill_(1)
+                m.bias.main_data.zero_()
 
         for m in self.modules():
             if isinstance(m, Bottleneck):
-                m.bn3.weight.data.fill_(0)
+                m.bn3.weight.main_data.fill_(0)
             if isinstance(m, BasicBlock):
-                m.bn2.weight.data.fill_(0)
+                m.bn2.weight.main_data.fill_(0)
 
     def _make_layer(self, block, planes, blocks, stride=1, group_norm=0):
         downsample = None
