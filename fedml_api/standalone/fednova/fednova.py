@@ -98,14 +98,14 @@ class FedNova(Optimizer):
             for p in group['params']:
                 if p.grad is None:
                     continue
-                d_p = p.grad.data
+                d_p = p.grad.main_data
 
                 if weight_decay != 0:
-                    d_p.add_(weight_decay, p.data)
+                    d_p.add_(weight_decay, p.main_data)
                 
                 param_state = self.state[p]
                 if 'old_init' not in param_state:
-                    param_state['old_init'] = torch.clone(p.data).detach()
+                    param_state['old_init'] = torch.clone(p.main_data).detach()
 
                 local_lr = group['lr']
 
@@ -123,7 +123,7 @@ class FedNova(Optimizer):
 
                 # apply proximal updates
                 if self.mu != 0:
-                    d_p.add_(self.mu, p.data - param_state['old_init'])
+                    d_p.add_(self.mu, p.main_data - param_state['old_init'])
 
                 # update accumalated local updates
                 if 'cum_grad' not in param_state:
@@ -133,7 +133,7 @@ class FedNova(Optimizer):
                 else:
                     param_state['cum_grad'].add_(local_lr, d_p)
 
-                p.data.add_(-local_lr, d_p)
+                p.main_data.add_(-local_lr, d_p)
 
         # compute local normalizing vector a_i
         if self.momentum != 0:
@@ -189,7 +189,7 @@ class FedNova(Optimizer):
                 else:
                     param_state['old_init'].sub_(param_state['cum_grad'])
                 
-                p.data.copy_(param_state['old_init'])
+                p.main_data.copy_(param_state['old_init'])
                 param_state['cum_grad'].zero_()
 
                 # Reinitialize momentum buffer

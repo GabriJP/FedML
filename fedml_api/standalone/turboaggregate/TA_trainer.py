@@ -29,7 +29,7 @@ class TurboAggregateTrainer(object):
 
     def setup_clients(self, data_local_num_dict, train_data_local_dict, test_data_local_dict):
         logging.info("############setup_clients (START)#############")
-        for client_idx in range(self.args.client_number):
+        for client_idx in range(self.args.main_client_number):
             c = TA_Client(train_data_local_dict[client_idx], test_data_local_dict[client_idx],
                           data_local_num_dict[client_idx], self.args, self.device)
             self.client_list.append(c)

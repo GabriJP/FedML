@@ -56,7 +56,7 @@ class FedOptAPI(object):
         test_data_num  = len(self.test_global.dataset)
         sample_indices = random.sample(range(test_data_num), min(num_samples, test_data_num))
         subset = torch.utils.data.Subset(self.test_global.dataset, sample_indices)
-        sample_testset = torch.utils.data.DataLoader(subset, batch_size=self.args.batch_size)
+        sample_testset = torch.utils.data.LocalDataLoader(subset, batch_size=self.args.batch_size)
         self.val_global = sample_testset
 
     def _instanciate_opt(self):
@@ -143,7 +143,7 @@ class FedOptAPI(object):
             for parameter, new_parameter in zip(
                 self.model_trainer.model.parameters(), new_model.parameters()
             ):
-                parameter.grad = parameter.data - new_parameter.data
+                parameter.grad = parameter.main_data - new_parameter.main_data
                 # because we go to the opposite direction of the gradient
         model_state_dict = self.model_trainer.model.state_dict()
         new_model_state_dict = new_model.state_dict()

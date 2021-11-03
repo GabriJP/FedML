@@ -67,7 +67,7 @@ class ClientDSGD(object):
 
         for x_paras, g_z in zip(list(self.model_x.parameters()), grads_z):
             temp = g_z.data.mul(0 - self.learning_rate)
-            x_paras.data.add_(temp)
+            x_paras.main_data.add_(temp)
 
         self.loss_in_each_iteration.append(loss)
 
@@ -88,15 +88,15 @@ class ClientDSGD(object):
     def update_local_parameters(self):
         # update x_{t+1/2}
         for x_paras in self.model_x.parameters():
-            x_paras.data.mul_(self.topology[self.id])
+            x_paras.main_data.mul_(self.topology[self.id])
 
         for client_id in self.neighbors_weight_dict.keys():
             model_x = self.neighbors_weight_dict[client_id]
             topo_weight = self.neighbors_topo_weight_dict[client_id]
             for x_paras, x_neighbor in zip(list(self.model_x.parameters()), list(model_x.parameters())):
-                temp = x_neighbor.data.mul(topo_weight)
-                x_paras.data.add_(temp)
+                temp = x_neighbor.main_data.mul(topo_weight)
+                x_paras.main_data.add_(temp)
 
         # update parameter z (self.model)
         for x_params, z_params in zip(list(self.model_x.parameters()), list(self.model.parameters())):
-            z_params.data.copy_(x_params)
+            z_params.main_data.copy_(x_params)

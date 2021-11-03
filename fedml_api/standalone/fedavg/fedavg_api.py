@@ -41,7 +41,7 @@ class FedAvgAPI(object):
         w_global = self.model_trainer.get_model_params()
         for round_idx in range(self.args.comm_round):
 
-            logging.info("################Communication round : {}".format(round_idx))
+            logging.info(f"################Communication round : {round_idx}")
 
             w_locals = []
 
@@ -51,7 +51,7 @@ class FedAvgAPI(object):
             """
             client_indexes = self._client_sampling(round_idx, self.args.client_num_in_total,
                                                    self.args.client_num_per_round)
-            logging.info("client_indexes = " + str(client_indexes))
+            logging.info(f"client_indexes = {client_indexes}")
 
             for idx, client in enumerate(self.client_list):
                 # update dataset
@@ -94,7 +94,7 @@ class FedAvgAPI(object):
         test_data_num = len(self.test_global.dataset)
         sample_indices = random.sample(range(test_data_num), min(num_samples, test_data_num))
         subset = torch.utils.data.Subset(self.test_global.dataset, sample_indices)
-        sample_testset = torch.utils.data.DataLoader(subset, batch_size=self.args.batch_size)
+        sample_testset = torch.utils.data.LocalDataLoader(subset, batch_size=self.args.batch_size)
         self.val_global = sample_testset
 
     def _aggregate(self, w_locals):
@@ -116,7 +116,7 @@ class FedAvgAPI(object):
 
     def _local_test_on_all_clients(self, round_idx):
 
-        logging.info("################local_test_on_all_clients : {}".format(round_idx))
+        logging.info(f"################local_test_on_all_clients : {round_idx}")
 
         train_metrics = {
             'num_samples': [],
@@ -181,7 +181,7 @@ class FedAvgAPI(object):
 
     def _local_test_on_validation_set(self, round_idx):
 
-        logging.info("################local_test_on_validation_set : {}".format(round_idx))
+        logging.info(f"################local_test_on_validation_set : {round_idx}")
 
         if self.val_global is None:
             self._generate_validation_set()
@@ -208,6 +208,6 @@ class FedAvgAPI(object):
             wandb.log({"Test/Rec": test_rec, "round": round_idx})
             wandb.log({"Test/Loss": test_loss, "round": round_idx})
         else:
-            raise Exception("Unknown format to log metrics for dataset {}!" % self.args.dataset)
+            raise Exception(f"Unknown format to log metrics for dataset {self.args.dataset}!")
 
         logging.info(stats)
