@@ -119,9 +119,9 @@ if __name__ == "__main__":
 
     train_data_num, train_data_global, \
     test_data_global, local_data_num, \
-    train_data_local, test_data_local, class_num = data_loader(process_id, args.dataset, args.data_dir,
+    train_data_local, test_data_local, class_num = data_loader(process_id, args.dataset, args.main_data_dir,
                                                                args.partition_method, args.partition_alpha,
-                                                               args.client_number, args.batch_size)
+                                                               args.main_client_number, args.batch_size)
 
     # create the model
     model = None

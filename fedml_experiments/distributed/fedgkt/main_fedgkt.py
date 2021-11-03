@@ -113,8 +113,8 @@ def load_data(args, dataset_name):
 
     train_data_num, test_data_num, train_data_global, test_data_global, \
     train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-    class_num = data_loader(args.dataset, args.data_dir, args.partition_method,
-                            args.partition_alpha, args.client_number, args.batch_size)
+    class_num = data_loader(args.dataset, args.main_data_dir, args.partition_method,
+                            args.partition_alpha, args.main_client_number, args.batch_size)
 
     dataset = [train_data_num, test_data_num, train_data_global, test_data_global,
                train_data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num]
@@ -149,15 +149,15 @@ def create_client_model(args, n_classes):
     logging.info("pretrained:")
     for name, param in client_model.named_parameters():
         if name.startswith("conv1"):
-            param.data = params_featrue_extractor[name]
+            param.main_data = params_featrue_extractor[name]
             if args.whether_training_on_client == 0:
                 param.requires_grad = False
         elif name.startswith("bn1"):
-            param.data = params_featrue_extractor[name]
+            param.main_data = params_featrue_extractor[name]
             if args.whether_training_on_client == 0:
                 param.requires_grad = False
         elif name.startswith("layer1"):
-            param.data = params_featrue_extractor[name]
+            param.main_data = params_featrue_extractor[name]
             if args.whether_training_on_client == 0:
                 param.requires_grad = False
     logging.info(client_model)
