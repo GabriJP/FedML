@@ -72,7 +72,7 @@ class MyModelTrainer(ModelTrainer):
         https://towardsdatascience.com/cross-entropy-for-classification-d98e7f974451
         https://github.com/google-research/federated/blob/49a43456aa5eaee3e1749855eed89c0087983541/optimization/stackoverflow_lr/federated_stackoverflow_lr.py#L131
         '''
-        if args.dataset == "stackoverflow_lr":
+        if args.dataset_name == "stackoverflow_lr":
             criterion = nn.BCELoss(reduction='sum').to(device)
         else:
             criterion = nn.CrossEntropyLoss().to(device)
@@ -84,7 +84,7 @@ class MyModelTrainer(ModelTrainer):
                 pred = model(x)
                 loss = criterion(pred, target)
 
-                if args.dataset == "stackoverflow_lr":
+                if args.dataset_name == "stackoverflow_lr":
                     predicted = (pred > .5).int()
                     correct = predicted.eq(target).sum(axis=-1).eq(target.size(1)).sum()
                     true_positive = ((target * predicted) > .1).int().sum(axis=-1)

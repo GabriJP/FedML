@@ -53,9 +53,9 @@ class FedOptAPI(object):
         return client_indexes
 
     def _generate_validation_set(self, num_samples=10000):
-        test_data_num  = len(self.test_global.dataset)
+        test_data_num  = len(self.test_global.dataset_name)
         sample_indices = random.sample(range(test_data_num), min(num_samples, test_data_num))
-        subset = torch.utils.data.Subset(self.test_global.dataset, sample_indices)
+        subset = torch.utils.data.Subset(self.test_global.dataset_name, sample_indices)
         sample_testset = torch.utils.data.LocalDataLoader(subset, batch_size=self.args.batch_size)
         self.val_global = sample_testset
 
@@ -114,7 +114,7 @@ class FedOptAPI(object):
                 self._local_test_on_all_clients(round_idx)
             # per {frequency_of_the_test} round
             elif round_idx % self.args.frequency_of_the_test == 0:
-                if self.args.dataset.startswith("stackoverflow"):
+                if self.args.dataset_name.startswith("stackoverflow"):
                     self._local_test_on_validation_set(round_idx)
                 else:
                     self._local_test_on_all_clients(round_idx)
@@ -224,13 +224,13 @@ class FedOptAPI(object):
         # test data
         test_metrics = client.local_test(True)
 
-        if self.args.dataset == "stackoverflow_nwp":
+        if self.args.dataset_name == "stackoverflow_nwp":
             test_acc = test_metrics['test_correct'] / test_metrics['test_total']
             test_loss = test_metrics['test_loss'] / test_metrics['test_total']
             stats = {'test_acc': test_acc, 'test_loss': test_loss}
             wandb.log({"Test/Acc": test_acc, "round": round_idx})
             wandb.log({"Test/Loss": test_loss, "round": round_idx})
-        elif self.args.dataset == "stackoverflow_lr":
+        elif self.args.dataset_name == "stackoverflow_lr":
             test_acc = test_metrics['test_correct'] / test_metrics['test_total']
             test_pre = test_metrics['test_precision'] / test_metrics['test_total']
             test_rec = test_metrics['test_recall'] / test_metrics['test_total']
@@ -241,6 +241,6 @@ class FedOptAPI(object):
             wandb.log({"Test/Rec": test_rec, "round": round_idx})
             wandb.log({"Test/Loss": test_loss, "round": round_idx})
         else:
-            raise Exception("Unknown format to log metrics for dataset {}!"%self.args.dataset)
+            raise Exception("Unknown format to log metrics for dataset {}!" % self.args.dataset_name)
 
         logging.info(stats)

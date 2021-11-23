@@ -164,7 +164,7 @@ class FedNovaTrainer(object):
             test_metrics['num_correct'].append(copy.deepcopy(test_local_metrics['test_correct']))
             test_metrics['losses'].append(copy.deepcopy(test_local_metrics['test_loss']))
 
-            if self.args.dataset == "stackoverflow_lr":
+            if self.args.dataset_name == "stackoverflow_lr":
                 train_metrics['precisions'].append(copy.deepcopy(train_local_metrics['test_precision']))
                 train_metrics['recalls'].append(copy.deepcopy(train_local_metrics['test_recall']))
                 test_metrics['precisions'].append(copy.deepcopy(test_local_metrics['test_precision']))
@@ -189,7 +189,7 @@ class FedNovaTrainer(object):
         test_precision = sum(test_metrics['precisions']) / sum(test_metrics['num_samples'])
         test_recall = sum(test_metrics['recalls']) / sum(test_metrics['num_samples'])
 
-        if self.args.dataset == "stackoverflow_lr":
+        if self.args.dataset_name == "stackoverflow_lr":
             stats = {'training_acc': train_acc, 'training_precision': train_precision, 'training_recall': train_recall, 'training_loss': train_loss}
             wandb.log({"Train/Acc": train_acc, "round": round_idx})
             wandb.log({"Train/Pre": train_precision, "round": round_idx})

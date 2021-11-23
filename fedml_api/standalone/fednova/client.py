@@ -24,7 +24,7 @@ class Client:
         https://towardsdatascience.com/cross-entropy-for-classification-d98e7f974451
         https://github.com/google-research/federated/blob/49a43456aa5eaee3e1749855eed89c0087983541/optimization/stackoverflow_lr/federated_stackoverflow_lr.py#L131
         '''
-        if self.args.dataset == "stackoverflow_lr":
+        if self.args.dataset_name == "stackoverflow_lr":
             self.criterion = nn.BCELoss(reduction = 'sum').to(device)
         else:
             self.criterion = nn.CrossEntropyLoss().to(device)
@@ -130,7 +130,7 @@ class Client:
                 pred = model_global(x)
                 loss = self.criterion(pred, target)
 
-                if self.args.dataset == "stackoverflow_lr":
+                if self.args.dataset_name == "stackoverflow_lr":
                     predicted = (pred > .5).int()
                     correct = predicted.eq(target).sum(axis=-1).eq(target.size(1)).sum()
                     true_positive = ((target * predicted) > .1).int().sum(axis=-1)
