@@ -70,9 +70,9 @@ class BasicBlock(nn.Module):
 class Bottleneck(nn.Module):
     expansion = 4
 
-    def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
-                 base_width=64, dilation=1, norm_layer=None):
-        super(Bottleneck, self).__init__()
+    def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1, base_width=64, dilation=1,
+                 norm_layer=None):
+        super().__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         width = int(planes * (base_width / 64.)) * groups
@@ -112,9 +112,9 @@ class Bottleneck(nn.Module):
 
 class ResNet(nn.Module):
 
-    def __init__(self, block, layers, num_classes=10, zero_init_residual=False, groups=1,
-                 width_per_group=64, replace_stride_with_dilation=None, norm_layer=None, KD=False):
-        super(ResNet, self).__init__()
+    def __init__(self, block, layers, num_classes=10, zero_init_residual=False, groups=1, width_per_group=64,
+                 replace_stride_with_dilation=None, norm_layer=None, KD=False):
+        super().__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
@@ -204,7 +204,7 @@ def resnet56_server(c, pretrained=False, path=None, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained.
     """
-    logging.info("path = " + str(path))
+    logging.info(f"path = {path}")
     model = ResNet(Bottleneck, [6, 6, 6], num_classes=c, **kwargs)
     if pretrained:
         checkpoint = torch.load(path)

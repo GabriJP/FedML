@@ -1,14 +1,13 @@
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 class Generator(nn.Module):
     """
         Simple Generator w/ MLP
     """
+
     def __init__(self, input_size=100, num_classes=784):
-        super(Generator, self).__init__()
+        super().__init__()
         self.layer = nn.Sequential(
             nn.Linear(input_size, 128),
             nn.LeakyReLU(0.2),
@@ -35,8 +34,9 @@ class Discriminator(nn.Module):
     """
         Simple Discriminator w/ MLP
     """
+
     def __init__(self, input_size=784, num_classes=1):
-        super(Discriminator, self).__init__()
+        super().__init__()
         self.layer = nn.Sequential(
             nn.Linear(input_size, 512),
             nn.LeakyReLU(0.2),
@@ -52,9 +52,9 @@ class Discriminator(nn.Module):
         return y_
 
 
-class MNIST_gan(nn.Module):
+class MNISTGan(nn.Module):
     def __init__(self):
-        super(MNIST_gan, self).__init__()
+        super().__init__()
         self.netg = Generator()
         self.netd = Discriminator()
 

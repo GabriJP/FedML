@@ -1,20 +1,17 @@
-import queue
 import collections
-import threading
 import functools
+import queue
+import threading
 
 import torch
 import torch.nn.functional as F
-
 from torch.nn.modules.batchnorm import _BatchNorm
 from torch.nn.parallel._functions import ReduceAddCoalesced, Broadcast
-
-
 from torch.nn.parallel.data_parallel import DataParallel
 
-__all__ = ['FutureResult', 'SlavePipe', 'SyncMaster', \
-'SynchronizedBatchNorm1d', 'SynchronizedBatchNorm2d', 'SynchronizedBatchNorm3d', \
-'CallbackContext', 'execute_replication_callbacks', 'DataParallelWithCallback','patch_replication_callback']
+__all__ = ['FutureResult', 'SlavePipe', 'SyncMaster',
+           'SynchronizedBatchNorm1d', 'SynchronizedBatchNorm2d', 'SynchronizedBatchNorm3d',
+           'CallbackContext', 'execute_replication_callbacks', 'DataParallelWithCallback', 'patch_replication_callback']
 
 
 class FutureResult(object):
@@ -76,7 +73,7 @@ class SyncMaster(object):
         self._activated = False
 
     def __getstate__(self):
-        return {'master_callback': self._master_callback}
+        return dict(master_callback=self._master_callback)
 
     def __setstate__(self, state):
         self.__init__(state['master_callback'])
@@ -131,8 +128,6 @@ class SyncMaster(object):
         return len(self._registry)
 
 
-
-
 def _sum_ft(tensor):
     """sum over the first and last dimention"""
     return tensor.sum(dim=0).sum(dim=-1)
@@ -149,7 +144,7 @@ _MasterMessage = collections.namedtuple('_MasterMessage', ['sum', 'inv_std'])
 
 class _SynchronizedBatchNorm(_BatchNorm):
     def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True):
-        super(_SynchronizedBatchNorm, self).__init__(num_features, eps=eps, momentum=momentum, affine=affine)
+        super().__init__(num_features, eps=eps, momentum=momentum, affine=affine)
 
         self._sync_master = SyncMaster(self._data_parallel_master)
 
@@ -392,7 +387,6 @@ class SynchronizedBatchNorm3d(_SynchronizedBatchNorm):
             raise ValueError('expected 5D input (got {}D input)'
                              .format(input.dim()))
         super(SynchronizedBatchNorm3d, self)._check_input_dim(input)
-
 
 
 class CallbackContext(object):

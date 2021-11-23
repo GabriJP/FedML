@@ -172,7 +172,8 @@ def main():
         logging.info('epoch %d lr %e', epoch, lr)
 
         # training
-        train_acc, train_obj, train_loss = train(epoch, train_queue, valid_queue, model, architect, criterion, optimizer, lr)
+        train_acc, train_obj, train_loss = train(epoch, train_queue, valid_queue, model, architect, criterion,
+                                                 optimizer, lr)
         logging.info('train_acc %f', train_acc)
         if is_wandb_used:
             wandb.log({"searching_train_acc": train_acc, "epoch": epoch})
@@ -205,29 +206,31 @@ def main():
         print(F.softmax(model.module.alphas_reduce if is_multi_gpu else model.alphas_reduce, dim=-1))
         logging.info('genotype = %s', genotype)
         if is_wandb_used:
-            wandb.log({"genotype": str(genotype)}, step=epoch-1)
+            wandb.log({"genotype": str(genotype)}, step=epoch - 1)
             table.add_data(str(epoch), str(genotype))
             wandb.log({"Searched Architecture": table})
 
             # save the cnn architecture according to the CNN count
-            cnn_count = normal_cnn_count*10+reduce_cnn_count
+            cnn_count = normal_cnn_count * 10 + reduce_cnn_count
             wandb.log({"searching_cnn_count(%s)" % cnn_count: valid_acc, "epoch": epoch})
             if cnn_count not in best_accuracy_different_cnn_counts.keys():
                 best_accuracy_different_cnn_counts[cnn_count] = valid_acc
                 summary_key_cnn_structure = "best_acc_for_cnn_structure(n:%d,r:%d)" % (
-                normal_cnn_count, reduce_cnn_count)
+                    normal_cnn_count, reduce_cnn_count)
                 wandb.run.summary[summary_key_cnn_structure] = valid_acc
 
                 summary_key_best_cnn_structure = "epoch_of_best_acc_for_cnn_structure(n:%d,r:%d)" % (
-                normal_cnn_count, reduce_cnn_count)
+                    normal_cnn_count, reduce_cnn_count)
                 wandb.run.summary[summary_key_best_cnn_structure] = epoch
             else:
                 if valid_acc > best_accuracy_different_cnn_counts[cnn_count]:
                     best_accuracy_different_cnn_counts[cnn_count] = valid_acc
-                    summary_key_cnn_structure = "best_acc_for_cnn_structure(n:%d,r:%d)" % (normal_cnn_count, reduce_cnn_count)
+                    summary_key_cnn_structure = "best_acc_for_cnn_structure(n:%d,r:%d)" % (
+                    normal_cnn_count, reduce_cnn_count)
                     wandb.run.summary[summary_key_cnn_structure] = valid_acc
 
-                    summary_key_best_cnn_structure = "epoch_of_best_acc_for_cnn_structure(n:%d,r:%d)" % (normal_cnn_count, reduce_cnn_count)
+                    summary_key_best_cnn_structure = "epoch_of_best_acc_for_cnn_structure(n:%d,r:%d)" % (
+                    normal_cnn_count, reduce_cnn_count)
                     wandb.run.summary[summary_key_best_cnn_structure] = epoch
 
             if valid_acc > best_accuracy:
@@ -258,8 +261,8 @@ def train(epoch, train_queue, valid_queue, model, architect, criterion, optimize
         input_search = input_search.cuda()
         target_search = target_search.cuda()
 
-        architect.step_v2(input, target, input_search, target_search, lambda_train_regularizer, lambda_valid_regularizer)
-
+        architect.step_v2(input, target, input_search, target_search, lambda_train_regularizer,
+                          lambda_valid_regularizer)
 
         optimizer.zero_grad()
         logits = model(input)

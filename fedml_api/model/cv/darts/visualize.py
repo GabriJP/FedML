@@ -47,7 +47,7 @@ if __name__ == '__main__':
     genotype_name = sys.argv[1]
     try:
         print(genotype_name)
-        #genotype = MY_ARCT4
+        # genotype = MY_ARCT4
         genotype = eval('genotypes.{}'.format(genotype_name))
     except AttributeError:
         print("{} is not specified in genotypes.py".format(genotype_name))

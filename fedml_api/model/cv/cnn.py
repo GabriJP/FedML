@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class CNN_OriginalFedAvg(torch.nn.Module):
+class CNNOriginalFedAvg(torch.nn.Module):
     """The CNN model used in the original FedAvg paper:
     "Communication-Efficient Learning of Deep Networks from Decentralized Data"
     https://arxiv.org/abs/1602.05629.
@@ -45,7 +45,7 @@ class CNN_OriginalFedAvg(torch.nn.Module):
     """
 
     def __init__(self, only_digits=True):
-        super(CNN_OriginalFedAvg, self).__init__()
+        super().__init__()
         self.only_digits = only_digits
         self.conv2d_1 = torch.nn.Conv2d(1, 32, kernel_size=5, padding=2)
         self.max_pooling = nn.MaxPool2d(2, stride=2)
@@ -71,7 +71,7 @@ class CNN_OriginalFedAvg(torch.nn.Module):
         return x
 
 
-class CNN_DropOut(torch.nn.Module):
+class CNNDropOut(torch.nn.Module):
     """
     Recommended model by "Adaptive Federated Optimization" (https://arxiv.org/pdf/2003.00295.pdf)
     Used for EMNIST experiments.
@@ -113,7 +113,7 @@ class CNN_DropOut(torch.nn.Module):
     """
 
     def __init__(self, only_digits=True):
-        super(CNN_DropOut, self).__init__()
+        super().__init__()
         self.conv2d_1 = torch.nn.Conv2d(1, 32, kernel_size=3)
         self.max_pooling = nn.MaxPool2d(2, stride=2)
         self.conv2d_2 = torch.nn.Conv2d(32, 64, kernel_size=3)

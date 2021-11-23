@@ -10,8 +10,7 @@ def _concat(xs):
     return torch.cat([x.view(-1) for x in xs])
 
 
-class Architect(object):
-
+class Architect:
     def __init__(self, model, criterion, args, device):
         self.network_momentum = args.momentum
         self.network_weight_decay = args.weight_decay
@@ -25,6 +24,7 @@ class Architect(object):
             weight_decay=args.arch_weight_decay)
 
         self.device = device
+
     # Momentum: https://blog.paperspace.com/intro-to-optimization-momentum-rmsprop-adam/
     # V_j = coefficient_momentum * V_j - learning_rate * gradient
     # W_j = V_j + W_jx  x
@@ -266,7 +266,7 @@ class Architect(object):
         # approximate w(*) by adapting w using only a single training step and enable momentum.
         # w has been updated to w'
         unrolled_model = self._compute_unrolled_model(input_train, target_train, eta, network_optimizer)
-        #print("BEFORE:" + str(unrolled_model.parameters()))
+        # print("BEFORE:" + str(unrolled_model.parameters()))
 
         """(7)"""
         logits_val = unrolled_model(input_valid)
@@ -291,7 +291,7 @@ class Architect(object):
             g_new.main_data.copy_(g.data)
 
         """(8)"""
-        #unrolled_model_train = self._compute_unrolled_model(input_train, target_train, eta, network_optimizer)
+        # unrolled_model_train = self._compute_unrolled_model(input_train, target_train, eta, network_optimizer)
         unrolled_model.zero_grad()
 
         logits_train = unrolled_model(input_train)
@@ -328,13 +328,13 @@ class Architect(object):
 
     # DARTS
     def step_v2_2ndorder2(self, input_train, target_train, input_valid, target_valid, eta, network_optimizer,
-                         lambda_train_regularizer, lambda_valid_regularizer):
+                          lambda_train_regularizer, lambda_valid_regularizer):
         self.optimizer.zero_grad()
 
         # approximate w(*) by adapting w using only a single training step and enable momentum.
         # w has been updated to w'
         unrolled_model = self._compute_unrolled_model(input_train, target_train, eta, network_optimizer)
-        #print("BEFORE:" + str(unrolled_model.parameters()))
+        # print("BEFORE:" + str(unrolled_model.parameters()))
 
         """(7)"""
         logits_val = unrolled_model(input_valid)
@@ -359,7 +359,7 @@ class Architect(object):
             g_new.main_data.copy_(g.data)
 
         """(8)"""
-        #unrolled_model_train = self._compute_unrolled_model(input_train, target_train, eta, network_optimizer)
+        # unrolled_model_train = self._compute_unrolled_model(input_train, target_train, eta, network_optimizer)
         unrolled_model.zero_grad()
 
         logits_train = unrolled_model(input_train)

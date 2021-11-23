@@ -250,7 +250,6 @@ class MobileNetV3(nn.Module):
         out = self.out_conv2(out).view(batch, -1)
         return out
 
-
 # temp = torch.zeros((1, 3, 224, 224))
 # model = MobileNetV3(model_mode="LARGE", num_classes=1000, multiplier=1.0)
 # print(model(temp).shape)

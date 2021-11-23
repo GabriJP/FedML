@@ -6,15 +6,15 @@
 # Github repo: https://github.com/lukemelas/EfficientNet-PyTorch
 # With adjustments and added comments by workingcoder (github username).
 
-import re
-import math
 import collections
+import math
+import re
 from functools import partial
+
 import torch
 from torch import nn
 from torch.nn import functional as F
 from torch.utils import model_zoo
-
 
 ################################################################################
 ### Help functions for model architecture
@@ -71,6 +71,7 @@ class SwishImplementation(torch.autograd.Function):
         sigmoid_i = torch.sigmoid(i)
         return grad_output * (sigmoid_i * (1 + i * (1 - sigmoid_i)))
 
+
 class MemoryEfficientSwish(nn.Module):
     def forward(self, x):
         return SwishImplementation.apply(x)
@@ -94,10 +95,10 @@ def round_filters(filters, global_params):
     divisor = global_params.depth_divisor
     min_depth = global_params.min_depth
     filters *= multiplier
-    min_depth = min_depth or divisor # pay attention to this line when using min_depth
+    min_depth = min_depth or divisor  # pay attention to this line when using min_depth
     # follow the formula transferred from official TensorFlow implementation
     new_filters = max(min_depth, int(filters + divisor / 2) // divisor * divisor)
-    if new_filters < 0.9 * filters: # prevent rounding by more than 10%
+    if new_filters < 0.9 * filters:  # prevent rounding by more than 10%
         new_filters += divisor
     return int(new_filters)
 
@@ -221,7 +222,7 @@ class Conv2dDynamicSamePadding(nn.Conv2d):
         ih, iw = x.size()[-2:]
         kh, kw = self.weight.size()[-2:]
         sh, sw = self.stride
-        oh, ow = math.ceil(ih / sh), math.ceil(iw / sw) # change the output size according to stride ! ! !
+        oh, ow = math.ceil(ih / sh), math.ceil(iw / sw)  # change the output size according to stride ! ! !
         pad_h = max((oh - 1) * self.stride[0] + (kh - 1) * self.dilation[0] + 1 - ih, 0)
         pad_w = max((ow - 1) * self.stride[1] + (kw - 1) * self.dilation[1] + 1 - iw, 0)
         if pad_h > 0 or pad_w > 0:
@@ -296,6 +297,7 @@ class MaxPool2dDynamicSamePadding(nn.MaxPool2d):
             x = F.pad(x, [pad_w // 2, pad_w - pad_w // 2, pad_h // 2, pad_h - pad_h // 2])
         return F.max_pool2d(x, self.kernel_size, self.stride, self.padding,
                             self.dilation, self.ceil_mode, self.return_indices)
+
 
 class MaxPool2dStaticSamePadding(nn.MaxPool2d):
     """2D MaxPooling like TensorFlow's 'SAME' mode, with the given input image size.
@@ -544,6 +546,7 @@ url_map_advprop = {
     'efficientnet-b8': 'https://github.com/lukemelas/EfficientNet-PyTorch/releases/download/1.0/adv-efficientnet-b8-22a8fe65.pth',
 }
 
+
 # TODO: add the petrained weights url map of 'efficientnet-l2'
 
 
@@ -578,7 +581,3 @@ def load_pretrained_weights(model, model_name, weights_path=None, load_fc=True, 
     assert not ret.unexpected_keys, 'Missing keys when loading pretrained weights: {}'.format(ret.unexpected_keys)
 
     print('Loaded pretrained weights for {}'.format(model_name))
-
-
-
-

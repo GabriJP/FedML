@@ -1,7 +1,8 @@
-import torch.nn as nn
 import torch
+import torch.nn as nn
 
-class RNN_OriginalFedAvg(nn.Module):
+
+class RNNOriginalFedAvg(nn.Module):
     """Creates a RNN model using LSTM layers for Shakespeare language models (next character prediction task).
       This replicates the model structure in the paper:
       Communication-Efficient Learning of Deep Networks from Decentralized Data
@@ -16,7 +17,7 @@ class RNN_OriginalFedAvg(nn.Module):
       """
 
     def __init__(self, embedding_dim=8, vocab_size=90, hidden_size=256):
-        super(RNN_OriginalFedAvg, self).__init__()
+        super().__init__()
         self.embeddings = nn.Embedding(num_embeddings=vocab_size, embedding_dim=embedding_dim, padding_idx=0)
         self.lstm = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_size, num_layers=2, batch_first=True)
         self.fc = nn.Linear(hidden_size, vocab_size)
@@ -36,7 +37,7 @@ class RNN_OriginalFedAvg(nn.Module):
         return output
 
 
-class RNN_StackOverFlow(nn.Module):
+class RNNStackOverFlow(nn.Module):
     """Creates a RNN model using LSTM layers for StackOverFlow (next word prediction task).
       This replicates the model structure in the paper:
       "Adaptive Federated Optimization. ICML 2020" (https://arxiv.org/pdf/2003.00295.pdf)
@@ -53,7 +54,7 @@ class RNN_StackOverFlow(nn.Module):
                  embedding_size=96,
                  latent_size=670,
                  num_layers=1):
-        super(RNN_StackOverFlow, self).__init__()
+        super().__init__()
         extended_vocab_size = vocab_size + 3 + num_oov_buckets  # For pad/bos/eos/oov.
         self.word_embeddings = nn.Embedding(num_embeddings=extended_vocab_size, embedding_dim=embedding_size,
                                             padding_idx=0)
@@ -61,10 +62,10 @@ class RNN_StackOverFlow(nn.Module):
         self.fc1 = nn.Linear(latent_size, embedding_size)
         self.fc2 = nn.Linear(embedding_size, extended_vocab_size)
 
-    def forward(self, input_seq, hidden_state = None):
+    def forward(self, input_seq, hidden_state=None):
         embeds = self.word_embeddings(input_seq)
         lstm_out, hidden_state = self.lstm(embeds, hidden_state)
-        fc1_output = self.fc1(lstm_out[:,:])
+        fc1_output = self.fc1(lstm_out[:, :])
         output = self.fc2(fc1_output)
         output = torch.transpose(output, 1, 2)
         return output

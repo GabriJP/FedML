@@ -4,8 +4,8 @@ from torch.nn.modules.batchnorm import _BatchNorm
 """Pytorch implementation of group normalization in https://arxiv.org/abs/1803.08494 (Following the PyTorch Style)"""
 
 
-def group_norm(input, group, running_mean, running_var, weight=None, bias=None,
-               use_input_stats=True, momentum=0.1, eps=1e-5):
+def group_norm(input, group, running_mean, running_var, weight=None, bias=None, use_input_stats=True, momentum=0.1,
+               eps=1e-5):
     """Applies Group Normalization for channels in the same group in each data sample in a
     batch.
     See :class:`~torch.nn.GroupNorm1d`, :class:`~torch.nn.GroupNorm2d`,
@@ -20,8 +20,8 @@ def group_norm(input, group, running_mean, running_var, weight=None, bias=None,
     if bias is not None:
         bias = bias.repeat(b)
 
-    def _instance_norm(input, group, running_mean=None, running_var=None, weight=None,
-                       bias=None, use_input_stats=None, momentum=None, eps=None):
+    def _instance_norm(input, group, running_mean=None, running_var=None, weight=None, bias=None, use_input_stats=None,
+                       momentum=None, eps=None):
         # Repeat stored stats and affine transform params if necessary
         if running_mean is not None:
             running_mean_orig = running_mean
@@ -114,5 +114,4 @@ class GroupNorm3d(_GroupNorm):
 
     def _check_input_dim(self, input):
         if input.dim() != 5:
-            raise ValueError('expected 5D input (got {}D input)'
-                             .format(input.dim()))
+            raise ValueError(f'expected 5D input (got {input.dim()}D input)')

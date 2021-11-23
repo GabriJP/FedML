@@ -3,7 +3,6 @@
 import torch
 import torch.nn as nn
 
-
 __all__ = [
     'VGG', 'vgg11', 'vgg11_bn', 'vgg13', 'vgg13_bn', 'vgg16', 'vgg16_bn',
     'vgg19_bn', 'vgg19',
@@ -11,13 +10,7 @@ __all__ = [
 
 
 class VGG(nn.Module):
-
-    def __init__(
-        self,
-        features: nn.Module,
-        num_classes: int = 1000,
-        init_weights: bool = True
-    ) -> None:
+    def __init__(self, features: nn.Module, num_classes: int = 1000, init_weights: bool = True):
         super(VGG, self).__init__()
         self.features = features
         self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
@@ -55,7 +48,7 @@ class VGG(nn.Module):
 
 
 def make_layers(cfg, batch_norm=False):
-    layers = []
+    layers = list()
     in_channels = 3
     for v in cfg:
         if v == 'M':
@@ -71,7 +64,7 @@ def make_layers(cfg, batch_norm=False):
     return nn.Sequential(*layers)
 
 
-cfgs ={
+cfgs = {
     'A': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'B': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'D': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
@@ -119,7 +112,6 @@ def vgg13_bn():
     return VGG(make_layers(cfgs['A'], batch_norm=True))
 
 
-
 def vgg16():
     r"""VGG 16-layer model (configuration "D")
     `"Very Deep Convolutional Networks For Large-Scale Image Recognition" <https://arxiv.org/pdf/1409.1556.pdf>`._
@@ -148,6 +140,7 @@ def vgg19():
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return VGG(make_layers(cfgs['E']))
+
 
 def vgg19_bn():
     r"""VGG 19-layer model (configuration 'E') with batch normalization
