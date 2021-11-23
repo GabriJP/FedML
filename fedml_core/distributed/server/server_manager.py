@@ -1,42 +1,37 @@
 import logging
-from abc import abstractmethod
-import sys
 
 from mpi4py import MPI
 
-from ..communication.trpc.trpc_comm_manager import TRPCCommManager
 from ..communication.gRPC.grpc_comm_manager import GRPCCommManager
 from ..communication.mpi.com_manager import MpiCommunicationManager
 from ..communication.mqtt.mqtt_comm_manager import MqttCommManager
 from ..communication.observer import Observer
+from ..communication.trpc.trpc_comm_manager import TRPCCommManager
 
 
 class ServerManager(Observer):
-    def __init__(self, args, comm=None, rank=0, size=0, backend="MPI"):
-        self.args = args
+    def __init__(self, comm=None, rank=0, size=0, backend="MPI", grpc_ipconfig_path=None, trpc_master_config_path=None):
+        self._validate_backend(backend)
+
         self.size = size
         self.rank = rank
-
         self.backend = backend
-        if backend == "MPI":
-            self.com_manager = MpiCommunicationManager(comm, rank, size, node_type="server")
-        elif backend == "MQTT":
-            HOST = "0.0.0.0"
-            # HOST = "broker.emqx.io"
-            PORT = 1883
-            self.com_manager = MqttCommManager(HOST, PORT, client_id=rank, client_num=size - 1)
+
+        if backend == "MQTT":
+            self.com_manager = MqttCommManager("0.0.0.0", 1883, client_id=rank, client_num=size - 1)
         elif backend == "GRPC":
-            HOST = "0.0.0.0"
-            PORT = 50000 + rank
-            self.com_manager = GRPCCommManager(
-                HOST, PORT, ip_config_path=args.grpc_ipconfig_path, client_id=rank, client_num=size - 1
-            )
+            self.com_manager = GRPCCommManager("0.0.0.0", 50000 + rank, ip_config_path=grpc_ipconfig_path,
+                                               client_id=rank, client_num=size - 1)
         elif backend == "TRPC":
-            self.com_manager = TRPCCommManager(args.trpc_master_config_path, process_id=rank, world_size=size)
+            self.com_manager = TRPCCommManager(trpc_master_config_path, process_id=rank, world_size=size)
         else:
             self.com_manager = MpiCommunicationManager(comm, rank, size, node_type="server")
         self.com_manager.add_observer(self)
         self.message_handler_dict = dict()
+
+    @staticmethod
+    def _validate_backend(backend):
+        assert backend in {"MPI", "MQTT", "GRPC", "TRPC"}
 
     def run(self):
         self.register_message_receive_handlers()
@@ -55,7 +50,6 @@ class ServerManager(Observer):
     def send_message(self, message):
         self.com_manager.send_message(message)
 
-    @abstractmethod
     def register_message_receive_handlers(self) -> None:
         pass
 
@@ -66,9 +60,5 @@ class ServerManager(Observer):
         logging.info("__finish server")
         if self.backend == "MPI":
             MPI.COMM_WORLD.Abort()
-        elif self.backend == "MQTT":
-            self.com_manager.stop_receive_message()
-        elif self.backend == "GRPC":
-            self.com_manager.stop_receive_message()
-        elif self.backend == "TRPC":
+        else:
             self.com_manager.stop_receive_message()

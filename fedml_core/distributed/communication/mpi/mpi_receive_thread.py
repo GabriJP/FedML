@@ -8,7 +8,7 @@ from ..message import Message
 
 class MPIReceiveThread(threading.Thread):
     def __init__(self, comm, rank, size, name, q):
-        super(MPIReceiveThread, self).__init__()
+        super().__init__()
         self._stop_event = threading.Event()
         self.comm = comm
         self.rank = rank
@@ -17,7 +17,7 @@ class MPIReceiveThread(threading.Thread):
         self.q = q
 
     def run(self):
-        logging.debug("Starting Thread:" + self.name + ". Process ID = " + str(self.rank))
+        logging.debug(f"Starting Thread:{self.name}. Process ID = {self.rank}")
         while True:
             try:
                 msg_str = self.comm.recv()
@@ -37,14 +37,13 @@ class MPIReceiveThread(threading.Thread):
         # returns id of the respective thread
         if hasattr(self, '_thread_id'):
             return self._thread_id
-        for id, thread in threading._active.items():
+        for id_, thread in threading._active.items():
             if thread is self:
-                return id
+                return id_
 
     def raise_exception(self):
         thread_id = self.get_id()
-        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id,
-                                                         ctypes.py_object(SystemExit))
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit))
         if res > 1:
             ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
             print('Exception raise failure')

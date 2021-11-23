@@ -1,9 +1,11 @@
 import json
+import logging
 import sys
 
+from torch import Tensor
 
-class Message(object):
 
+class Message:
     MSG_ARG_KEY_OPERATION = "operation"
     MSG_ARG_KEY_TYPE = "msg_type"
     MSG_ARG_KEY_SENDER = "sender"
@@ -16,21 +18,22 @@ class Message(object):
 
     MSG_ARG_KEY_MODEL_PARAMS = "model_params"
 
-    def __init__(self, type=0, sender_id=0, receiver_id=0):
-        self.type = type
+    def __init__(self, msg_type=0, sender_id=0, receiver_id=0):
+        self.msg_type = msg_type
         self.sender_id = sender_id
         self.receiver_id = receiver_id
-        self.msg_params = {}
-        self.msg_params[Message.MSG_ARG_KEY_TYPE] = type
-        self.msg_params[Message.MSG_ARG_KEY_SENDER] = sender_id
-        self.msg_params[Message.MSG_ARG_KEY_RECEIVER] = receiver_id
+        self.msg_params = {
+            Message.MSG_ARG_KEY_TYPE: msg_type,
+            Message.MSG_ARG_KEY_SENDER: sender_id,
+            Message.MSG_ARG_KEY_RECEIVER: receiver_id,
+        }
 
     def init(self, msg_params):
         self.msg_params = msg_params
 
     def init_from_json_string(self, json_string):
         self.msg_params = json.loads(json_string)
-        self.type = self.msg_params[Message.MSG_ARG_KEY_TYPE]
+        self.msg_type = self.msg_params[Message.MSG_ARG_KEY_TYPE]
         self.sender_id = self.msg_params[Message.MSG_ARG_KEY_SENDER]
         self.receiver_id = self.msg_params[Message.MSG_ARG_KEY_RECEIVER]
         # print("msg_params = " + str(self.msg_params))
@@ -41,7 +44,18 @@ class Message(object):
     def get_receiver_id(self):
         return self.receiver_id
 
+    @staticmethod
+    def _tensor_to_numpy(tensor: Tensor):
+        return tensor.cpu().numpy().tolist()
+
     def add_params(self, key, value):
+        if isinstance(value, Tensor):
+            value = self._tensor_to_numpy(value)
+        elif isinstance(value, dict):
+            for k, v in value.items():
+                if not isinstance(v, Tensor):
+                    continue
+                value[k] = self._tensor_to_numpy(v)
         self.msg_params[key] = value
 
     def get_params(self):
@@ -61,14 +75,10 @@ class Message(object):
 
     def to_json(self):
         json_string = json.dumps(self.msg_params)
-        print("json string size = " + str(sys.getsizeof(json_string)))
+        logging.info(f"json string size = {sys.getsizeof(json_string)}")
         return json_string
 
     def get_content(self):
         print_dict = self.msg_params.copy()
-        msg_str = str(self.__to_msg_type_string()) + ": " + str(print_dict)
+        msg_str = f"{self.msg_params[Message.MSG_ARG_KEY_TYPE]}: {print_dict}"
         return msg_str
-
-    def __to_msg_type_string(self):
-        type = self.msg_params[Message.MSG_ARG_KEY_TYPE]
-        return type

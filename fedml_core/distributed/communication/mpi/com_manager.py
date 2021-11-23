@@ -16,7 +16,7 @@ class MpiCommunicationManager(BaseCommunicationManager):
         self.rank = rank
         self.size = size
 
-        self._observers: List[Observer] = []
+        self._observers: List[Observer] = list()
 
         if node_type == "client":
             self.q_sender, self.q_receiver = self.init_client_communication()

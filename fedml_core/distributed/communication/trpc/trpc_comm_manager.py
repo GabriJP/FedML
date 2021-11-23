@@ -153,12 +153,12 @@ def run_worker(rank, world_size):
         com_manager_client = TRPCCommManager("./trpc_master_config.csv", rank, world_size)
         start = time.time()
         tensor = torch.ones(1000, 1000)
-        message = Message(type="test", sender_id=rank, receiver_id="1")
+        message = Message(msg_type="test", sender_id=rank, receiver_id="1")
         message.add_params("THE_TENSOR", tensor)
         TRPCCOMMServicer.sendMessage("worker0", message)
         message_values = []
-        message = Message(type="test", sender_id=rank, receiver_id="1")
-        message2 = Message(type="test", sender_id=rank, receiver_id="1")
+        message = Message(msg_type="test", sender_id=rank, receiver_id="1")
+        message2 = Message(msg_type="test", sender_id=rank, receiver_id="1")
         message.add_params("THE_TENSOR", tensor)
         for i in range(100):
             print("###############################")

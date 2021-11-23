@@ -14,7 +14,7 @@ from FedML.fedml_core.distributed.communication.observer import Observer
 class MqttCommManager(BaseCommunicationManager):
     def __init__(self, host, port, topic='fedml', client_id=0, client_num=0):
         self._unacked_sub = list()
-        self._observers: List[Observer] = []
+        self._observers: List[Observer] = list()
         self._topic = topic
         if client_id is None:
             self._client_id = mqtt.base62(uuid.uuid4().int, padding=22)
@@ -28,7 +28,7 @@ class MqttCommManager(BaseCommunicationManager):
         self._client.on_message = self._on_message
         self._client.on_subscribe = self._on_subscribe
         # connect broker,connect() or connect_async()
-        self._client.connect(host, port, 60)
+        self._client.connect(host, port)
         self._client.loop_start()
         # self._client.loop_forever()
 
@@ -55,19 +55,19 @@ class MqttCommManager(BaseCommunicationManager):
             receiving message topic (subscribe): serverID_clientID
 
         """
-        print("Connection returned with result code:" + str(rc))
+        logging.info(f"Connection returned with result code:{rc}")
         # subscribe one topic
         if self.client_id == 0:
             # server
-            for client_ID in range(1, self.client_num+1):
-                result, mid = self._client.subscribe(self._topic + str(client_ID), 0)
+            for client_id in range(1, self.client_num + 1):
+                result, mid = self._client.subscribe(f"{self._topic}{client_id}", 0)
                 self._unacked_sub.append(mid)
-                print(result)
+                logging.info(f'Subscription result for id "{client_id}": {result}')
         else:
             # client
-            result, mid = self._client.subscribe(self._topic + str(0) + "_" + str(self.client_id), 0)
+            result, mid = self._client.subscribe(f"{self._topic}0_{self.client_id}", 0)
             self._unacked_sub.append(mid)
-            print(result)
+            logging.info(f'Subscription result: {result}')
 
     def _on_message(self, client, userdata, msg):
         msg.payload = str(msg.payload, encoding='utf-8')
@@ -76,10 +76,10 @@ class MqttCommManager(BaseCommunicationManager):
 
     @staticmethod
     def _on_disconnect(client, userdata, rc):
-        print("Disconnection returned result:" + str(rc))
+        logging.info(f"Disconnection returned result:{rc}")
 
     def _on_subscribe(self, client, userdata, mid, granted_qos):
-        print("onSubscribe :" + str(mid))
+        logging.info(f"onSubscribe :{mid}")
         self._unacked_sub.remove(mid)
 
     def add_observer(self, observer: Observer):
@@ -110,14 +110,14 @@ class MqttCommManager(BaseCommunicationManager):
         if self.client_id == 0:
             # server
             receiver_id = msg.get_receiver_id()
-            topic = self._topic + str(0) + "_" + str(receiver_id)
-            logging.info("topic = %s" % str(topic))
+            topic = f"{self._topic}0_{receiver_id}"
+            logging.info(f"topic = {topic}")
             payload = msg.to_json()
             self._client.publish(topic, payload=payload)
             logging.info("sent")
         else:
             # client
-            self._client.publish(self._topic + str(self.client_id), payload=msg.to_json())
+            self._client.publish(f"{self._topic}{self.client_id}", payload=msg.to_json())
 
     def handle_receive_message(self):
         pass
@@ -129,12 +129,13 @@ class MqttCommManager(BaseCommunicationManager):
 if __name__ == '__main__':
     class Obs(Observer):
         def receive_message(self, msg_type, msg_params) -> None:
-            print("receive_message(%s, %s)" % (msg_type, msg_params.to_string()))
-    
+            print(f"receive_message({msg_type}, {msg_params.to_string()})")
+
+
     client = MqttCommManager("127.0.0.1", 1883)
     client.add_observer(Obs())
     time.sleep(3)
-    print('client ID:%s' % client.client_id)
+    print(f'client ID:{client.client_id}')
 
     message = Message(0, 1, 2)
     message.add_params("key1", 1)
