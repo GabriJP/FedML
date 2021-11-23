@@ -36,18 +36,18 @@ from fedml_api.data_preprocessing.cifar10.data_loader import load_partition_data
 from fedml_api.data_preprocessing.cifar100.data_loader import load_partition_data_cifar100
 from fedml_api.data_preprocessing.cinic10.data_loader import load_partition_data_cinic10
 
-from fedml_api.model.cv.cnn import CNN_DropOut
+from fedml_api.model.cv.cnn import CNNDropOut
 from fedml_api.model.cv.resnet_gn import resnet18
 from fedml_api.model.cv.mobilenet import mobilenet
 from fedml_api.model.cv.resnet import resnet56
-from fedml_api.model.nlp.rnn import RNN_OriginalFedAvg, RNN_StackOverFlow
+from fedml_api.model.nlp.rnn import RNNOriginalFedAvg, RNNStackOverFlow
 from fedml_api.model.linear.lr import LogisticRegression
 from fedml_api.model.cv.mobilenet_v3 import MobileNetV3
 from fedml_api.model.cv.efficientnet import EfficientNet
 
 
 
-from fedml_api.distributed.fedavg.FedAvgAPI import FedML_init, FedML_FedAvg_distributed
+from fedml_api.distributed.fedavg.FedAvgAPI import fed_ml_init, fed_ml_fed_avg_distributed
 
 
 def add_args(parser):
@@ -135,7 +135,7 @@ def load_data(args, dataset_name):
         logging.info("load_data. dataset_name = %s" % dataset_name)
         client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_federated_emnist(args.dataset, args.main_data_dir)
+        class_num = load_partition_data_federated_emnist(args.dataset_name, args.main_data_dir)
         args.client_num_in_total = client_num
 
     elif dataset_name == "shakespeare":
@@ -149,26 +149,26 @@ def load_data(args, dataset_name):
         logging.info("load_data. dataset_name = %s" % dataset_name)
         client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_federated_shakespeare(args.dataset, args.main_data_dir)
+        class_num = load_partition_data_federated_shakespeare(args.dataset_name, args.main_data_dir)
         args.client_num_in_total = client_num
 
     elif dataset_name == "fed_cifar100":
         logging.info("load_data. dataset_name = %s" % dataset_name)
         client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_federated_cifar100(args.dataset, args.main_data_dir)
+        class_num = load_partition_data_federated_cifar100(args.dataset_name, args.main_data_dir)
         args.client_num_in_total = client_num
     elif dataset_name == "stackoverflow_lr":
         logging.info("load_data. dataset_name = %s" % dataset_name)
         client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_federated_stackoverflow_lr(args.dataset, args.main_data_dir)
+        class_num = load_partition_data_federated_stackoverflow_lr(args.dataset_name, args.main_data_dir)
         args.client_num_in_total = client_num
     elif dataset_name == "stackoverflow_nwp":
         logging.info("load_data. dataset_name = %s" % dataset_name)
         client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_federated_stackoverflow_nwp(args.dataset, args.main_data_dir)
+        class_num = load_partition_data_federated_stackoverflow_nwp(args.dataset_name, args.main_data_dir)
         args.client_num_in_total = client_num
     elif dataset_name == "ILSVRC2012":
         logging.info("load_data. dataset_name = %s" % dataset_name)
@@ -219,7 +219,7 @@ def load_data(args, dataset_name):
 
         train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = data_loader(args.dataset, args.main_data_dir, args.partition_method,
+        class_num = data_loader(args.dataset_name, args.main_data_dir, args.partition_method,
                                 args.partition_alpha, args.client_num_in_total, args.batch_size)
     dataset = [train_data_num, test_data_num, train_data_global, test_data_global,
                train_data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num]
@@ -229,27 +229,27 @@ def load_data(args, dataset_name):
 def create_model(args, model_name, output_dim):
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
     model = None
-    if model_name == "lr" and args.dataset == "mnist":
+    if model_name == "lr" and args.dataset_name == "mnist":
         logging.info("LogisticRegression + MNIST")
         model = LogisticRegression(28 * 28, output_dim)
-    elif model_name == "cnn" and args.dataset == "femnist":
+    elif model_name == "cnn" and args.dataset_name == "femnist":
         logging.info("CNN + FederatedEMNIST")
-        model = CNN_DropOut(False)
-    elif model_name == "resnet18_gn" and args.dataset == "fed_cifar100":
+        model = CNNDropOut(False)
+    elif model_name == "resnet18_gn" and args.dataset_name == "fed_cifar100":
         logging.info("ResNet18_GN + Federated_CIFAR100")
         model = resnet18()
-    elif model_name == "rnn" and args.dataset == "shakespeare":
+    elif model_name == "rnn" and args.dataset_name == "shakespeare":
         logging.info("RNN + shakespeare")
-        model = RNN_OriginalFedAvg()
-    elif model_name == "rnn" and args.dataset == "fed_shakespeare":
+        model = RNNOriginalFedAvg()
+    elif model_name == "rnn" and args.dataset_name == "fed_shakespeare":
         logging.info("RNN + fed_shakespeare")
-        model = RNN_OriginalFedAvg()
-    elif model_name == "lr" and args.dataset == "stackoverflow_lr":
+        model = RNNOriginalFedAvg()
+    elif model_name == "lr" and args.dataset_name == "stackoverflow_lr":
         logging.info("lr + stackoverflow_lr")
         model = LogisticRegression(10004, output_dim)
-    elif model_name == "rnn" and args.dataset == "stackoverflow_nwp":
+    elif model_name == "rnn" and args.dataset_name == "stackoverflow_nwp":
         logging.info("CNN + stackoverflow_nwp")
-        model = RNN_StackOverFlow()
+        model = RNNStackOverFlow()
     elif model_name == "resnet56":
         model = resnet56(class_num=output_dim)
     elif model_name == "mobilenet":
@@ -320,7 +320,7 @@ def init_training_device_from_gpu_util_file(process_id, worker_number, gpu_util_
 
 if __name__ == "__main__":
     # initialize distributed computing (MPI)
-    comm, process_id, worker_number = FedML_init()
+    comm, process_id, worker_number = fed_ml_init()
 
     # parse python script input parameters
     parser = argparse.ArgumentParser()
@@ -379,7 +379,7 @@ if __name__ == "__main__":
         device = init_training_device(process_id, worker_number - 1, args.gpu_num_per_server)
 
     # load data
-    dataset = load_data(args, args.dataset)
+    dataset = load_data(args, args.dataset_name)
     [train_data_num, test_data_num, train_data_global, test_data_global,
      train_data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num] = dataset
 
@@ -390,9 +390,9 @@ if __name__ == "__main__":
 
     try:
     # start "federated averaging (FedAvg)"
-        FedML_FedAvg_distributed(process_id, worker_number, device, comm,
-                             model, train_data_num, train_data_global, test_data_global,
-                             train_data_local_num_dict, train_data_local_dict, test_data_local_dict, args)
+        fed_ml_fed_avg_distributed(process_id, worker_number, device, comm,
+                                   model, train_data_num, train_data_global, test_data_global,
+                                   train_data_local_num_dict, train_data_local_dict, test_data_local_dict, args)
     except Exception as e:
         print(e)
         logging.info('traceback.format_exc():\n%s' % traceback.format_exc())

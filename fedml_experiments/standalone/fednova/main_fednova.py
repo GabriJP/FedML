@@ -112,7 +112,7 @@ def load_data(args, dataset_name):
             raise("Dataloader not added!")
         train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = data_loader(args.dataset, args.main_data_dir, args.partition_method,
+        class_num = data_loader(args.dataset_name, args.main_data_dir, args.partition_method,
                                 args.partition_alpha, args.client_num_in_total, args.batch_size)
 
     if centralized:
@@ -143,10 +143,10 @@ def combine_batches(batches):
 def create_model(args, model_name, output_dim):
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
     model = None
-    if model_name == "lr" and args.dataset == "synthetic_1_1":
+    if model_name == "lr" and args.dataset_name == "synthetic_1_1":
         logging.info("LogisticRegression + synthetic_1_1")
         model = LogisticRegression(60, output_dim)
-    elif model_name == "vgg" and args.dataset == "cifar10":
+    elif model_name == "vgg" and args.dataset_name == "cifar10":
         logging.info("VGG11 + cifar10")
         model = vgg11()
     else:
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     torch.manual_seed(10)
 
     # load data
-    dataset = load_data(args, args.dataset)
+    dataset = load_data(args, args.dataset_name)
 
     # create model.
     model = create_model(args, model_name=args.model, output_dim=dataset[7])

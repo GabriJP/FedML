@@ -113,7 +113,7 @@ def load_data(args, dataset_name):
 
     train_data_num, test_data_num, train_data_global, test_data_global, \
     train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-    class_num = data_loader(args.dataset, args.main_data_dir, args.partition_method,
+    class_num = data_loader(args.dataset_name, args.main_data_dir, args.partition_method,
                             args.partition_alpha, args.main_client_number, args.batch_size)
 
     dataset = [train_data_num, test_data_num, train_data_global, test_data_global,
@@ -125,11 +125,11 @@ def create_client_model(args, n_classes):
     """
         Note that we only initialize the client feature extractor to mitigate the difficulty of alternating optimization
     """
-    if args.dataset == "cifar10" or args.dataset == "CIFAR10":
+    if args.dataset_name == "cifar10" or args.dataset_name == "CIFAR10":
         resumePath = "./../../../fedml_api/model/cv/pretrained/CIFAR10/resnet56/best.pth"
-    elif args.dataset == "cifar100" or args.dataset == "CIFAR100":
+    elif args.dataset_name == "cifar100" or args.dataset_name == "CIFAR100":
         resumePath = "./../../../fedml_api/model/cv/pretrained/CIFAR100/resnet56/best.pth"
-    elif args.dataset == "cinic10" or args.dataset == "CINIC10":
+    elif args.dataset_name == "cinic10" or args.dataset_name == "CINIC10":
         resumePath = "./../../../fedml_api/model/cv/pretrained/CINIC10/resnet56/best.pth"
     else:
         resumePath = "./../../../fedml_api/model/cv/pretrained/CIFAR10/resnet56/best.pth"
@@ -241,7 +241,7 @@ if __name__ == "__main__":
     # Note: if you use # of client epoch larger than 1,
     # please set the shuffle=False for the dataloader (CIFAR10/CIFAR100/CINIC10),
     # which keeps the batch sequence order across epoches.
-    dataset = load_data(args, args.dataset)
+    dataset = load_data(args, args.dataset_name)
     [train_data_num, test_data_num, train_data_global, test_data_global,
      train_data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num] = dataset
 

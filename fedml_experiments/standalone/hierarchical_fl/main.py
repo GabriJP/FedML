@@ -41,7 +41,7 @@ if __name__ == "__main__":
     torch.manual_seed(10)
 
     # load data
-    dataset = load_data(args, args.dataset)
+    dataset = load_data(args, args.dataset_name)
 
     # create model.
     # Note if the model is DNN (e.g., ResNet), the training will be very slow.

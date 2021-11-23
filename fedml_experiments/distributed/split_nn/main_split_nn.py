@@ -108,18 +108,18 @@ if __name__ == "__main__":
     torch.manual_seed(worker_number)
 
     # load data
-    if args.dataset == "cifar10":
+    if args.dataset_name == "cifar10":
         data_loader = load_partition_data_distributed_cifar10
-    elif args.dataset == "cifar100":
+    elif args.dataset_name == "cifar100":
         data_loader = load_partition_data_distributed_cifar100
-    elif args.dataset == "cinic10":
+    elif args.dataset_name == "cinic10":
         data_loader = load_partition_data_distributed_cinic10
     else:
         data_loader = load_partition_data_distributed_cifar10
 
     train_data_num, train_data_global, \
     test_data_global, local_data_num, \
-    train_data_local, test_data_local, class_num = data_loader(process_id, args.dataset, args.main_data_dir,
+    train_data_local, test_data_local, class_num = data_loader(process_id, args.dataset_name, args.main_data_dir,
                                                                args.partition_method, args.partition_alpha,
                                                                args.main_client_number, args.batch_size)
 

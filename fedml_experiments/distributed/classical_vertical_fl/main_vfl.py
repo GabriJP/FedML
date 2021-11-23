@@ -18,7 +18,7 @@ from fedml_api.model.finance.vfl_feature_extractor import VFLFeatureExtractor
 from fedml_api.data_preprocessing.lending_club_loan.lending_club_dataset import loan_load_three_party_data
 from fedml_api.data_preprocessing.NUS_WIDE.nus_wide_dataset import NUS_WIDE_load_three_party_data
 from fedml_api.distributed.classical_vertical_fl.vfl_api import FedML_VFL_distributed
-from fedml_api.distributed.fedavg.FedAvgAPI import FedML_init
+from fedml_api.distributed.fedavg.FedAvgAPI import fed_ml_init
 
 
 def add_args(parser):
@@ -66,7 +66,7 @@ def init_training_device(process_ID, fl_worker_num, gpu_num_per_machine):
 
 if __name__ == "__main__":
     # initialize distributed computing (MPI)
-    comm, process_id, worker_number = FedML_init()
+    comm, process_id, worker_number = fed_ml_init()
 
     # parse python script input parameters
     parser = argparse.ArgumentParser()
@@ -101,10 +101,10 @@ if __name__ == "__main__":
 
     # load data
     print("################################ Prepare Data ############################")
-    if args.dataset == "lending_club_loan":
+    if args.dataset_name == "lending_club_loan":
         data_dir = "../../../data/lending_club_loan/"
         train, test = loan_load_three_party_data(data_dir)
-    elif args.dataset == "NUS_WIDE":
+    elif args.dataset_name == "NUS_WIDE":
         data_dir = "../../../data/NUS_WIDE"
         class_lbls = ['person', 'animal']
         train, test = NUS_WIDE_load_three_party_data(data_dir, class_lbls, neg_label=0)

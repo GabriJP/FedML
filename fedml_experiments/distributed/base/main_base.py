@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../")))
 
 # add the FedML root directory to the python path
 from fedml_api.distributed.base_framework.algorithm_api import FedML_Base_distributed
-from fedml_api.distributed.fedavg.FedAvgAPI import FedML_init
+from fedml_api.distributed.fedavg.FedAvgAPI import fed_ml_init
 
 
 def add_args(parser):
@@ -33,7 +33,7 @@ def add_args(parser):
 
 if __name__ == "__main__":
     # initialize distributed computing (MPI)
-    comm, process_id, worker_number = FedML_init()
+    comm, process_id, worker_number = fed_ml_init()
 
     # parse python script input parameters
     parser = argparse.ArgumentParser()

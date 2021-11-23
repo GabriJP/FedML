@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "")))
 from fedml_api.distributed.utils.gpu_mapping import mapping_processes_to_gpu_device_from_yaml_file
 from fedml_api.data_preprocessing.MNIST.data_loader import load_partition_data_mnist
 
-from fedml_api.model.cv.mnist_gan import MNIST_gan
+from fedml_api.model.cv.mnistgan import MNISTGan
 
 from fedml_api.distributed.fedgan.FedGanAPI import FedML_init, FedML_FedGan_distributed
 from fedml_api.distributed.fedgan.MyModelTrainer import MyModelTrainer
@@ -144,7 +144,7 @@ def load_data(args, dataset_name):
 
 
 def create_model():
-    model = MNIST_gan()
+    model = MNISTGan()
     return model
 
 
@@ -192,7 +192,7 @@ if __name__ == "__main__":
                                                             args.gpu_mapping_key)
 
     # load data
-    dataset = load_data(args, args.dataset)
+    dataset = load_data(args, args.dataset_name)
     [train_data_num, test_data_num, train_data_global, test_data_global,
      train_data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num] = dataset
 

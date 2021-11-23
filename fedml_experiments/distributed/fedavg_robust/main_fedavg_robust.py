@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../")))
 from fedml_api.distributed.fedavg_robust.FedAvgRobustAPI import FedML_init, FedML_FedAvgRobust_distributed
 
 from fedml_api.data_preprocessing.shakespeare.data_loader import load_partition_data_shakespeare
-from fedml_api.model.nlp.rnn import RNN_OriginalFedAvg
+from fedml_api.model.nlp.rnn import RNNOriginalFedAvg
 
 from fedml_api.data_preprocessing.MNIST.data_loader import load_partition_data_mnist
 from fedml_api.model.linear.lr import LogisticRegression
@@ -148,7 +148,7 @@ def load_data(args, dataset_name):
 
         train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = data_loader(args.dataset, args.main_data_dir, args.partition_method,
+        class_num = data_loader(args.dataset_name, args.main_data_dir, args.partition_method,
                                 args.partition_alpha, args.client_num_in_total, args.batch_size)
 
     dataset = [train_data_num, test_data_num, train_data_global, test_data_global,
@@ -160,11 +160,11 @@ def load_data(args, dataset_name):
 def create_model(args, model_name, output_dim):
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
     model = None
-    if model_name == "lr" and args.dataset == "mnist":
+    if model_name == "lr" and args.dataset_name == "mnist":
         model = LogisticRegression(28 * 28, output_dim)
         args.client_optimizer = "sgd"
-    elif model_name == "rnn" and args.dataset == "shakespeare":
-        model = RNN_OriginalFedAvg(28 * 28, output_dim)
+    elif model_name == "rnn" and args.dataset_name == "shakespeare":
+        model = RNNOriginalFedAvg(28 * 28, output_dim)
         args.client_optimizer = "sgd"
     elif model_name == "resnet56":
         model = resnet56(class_num=output_dim)
@@ -243,7 +243,7 @@ if __name__ == "__main__":
     device = init_training_device(process_id, worker_number-1, args.gpu_num_per_server)
 
     # load data
-    dataset, poisoned_train_loader, targetted_task_test_loader, num_dps_poisoned_dataset = load_data(args, args.dataset)
+    dataset, poisoned_train_loader, targetted_task_test_loader, num_dps_poisoned_dataset = load_data(args, args.dataset_name)
     [train_data_num, test_data_num, train_data_global, test_data_global,
      train_data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num] = dataset
 
