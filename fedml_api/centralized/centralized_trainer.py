@@ -6,6 +6,7 @@ import wandb
 from torch import nn
 
 from FedML.fedml_api.data_preprocessing import LocalDataset
+from fedml_core import CentralizedRunConfig
 
 
 class CentralizedTrainer:
@@ -13,9 +14,7 @@ class CentralizedTrainer:
     This class is used to train federated non-IID dataset in a centralized way
     """
 
-    def __init__(self, dataset: LocalDataset, model, device, args):
-        self.device = device
-        self.args = args
+    def __init__(self, dataset: LocalDataset, model, device, config: CentralizedRunConfig):
         self.train_global = dataset.train_data_global
         self.test_global = dataset.test_data_global
         self.train_data_num_in_total = dataset.train_data_num
@@ -25,17 +24,23 @@ class CentralizedTrainer:
         self.test_data_local_dict = dataset.test_data_local_dict
 
         self.model = model
+        self.device = device
+        self.config = config
+
         self.model.to(self.device)
         self.criterion = nn.CrossEntropyLoss()
-        if self.args.client_optimizer == "sgd":
-            self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.args.lr)
-        else:
+
+        if config.client_optimizer == "sgd":
+            self.optimizer = torch.optim.SGD(self.model.parameters(), lr=config.lr)
+        elif config.client_optimizer == 'adam':
             self.optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()),
-                                              lr=self.args.lr, weight_decay=self.args.wd, amsgrad=True)
+                                              lr=config.lr, weight_decay=config.wd, amsgrad=True)
+        else:
+            raise ValueError(f'Unknown optimizer {config.client_optimizer}')
 
     def train(self):
-        for epoch in range(self.args.epochs):
-            if self.args.data_parallel == 1:
+        for epoch in range(self.config.epochs):
+            if self.config.data_parallel:
                 self.train_global.sampler.set_epoch(epoch)
             self.train_impl(epoch)
             self.eval_impl(epoch)
@@ -54,11 +59,11 @@ class CentralizedTrainer:
 
     def eval_impl(self, epoch_idx):
         # train
-        if epoch_idx % self.args.frequency_of_train_acc_report == 0:
+        if epoch_idx % self.config.frequency_of_train_acc_report == 0:
             self.test_on_all_clients(b_is_train=True, epoch_idx=epoch_idx)
 
         # test
-        if epoch_idx % self.args.frequency_of_train_acc_report == 0:
+        if epoch_idx % self.config.frequency_of_train_acc_report == 0:
             self.test_on_all_clients(b_is_train=False, epoch_idx=epoch_idx)
 
     def test_on_all_clients(self, b_is_train, epoch_idx):
@@ -74,7 +79,7 @@ class CentralizedTrainer:
                 pred = self.model(x)
                 loss = self.criterion(pred, target)
 
-                if self.args.dataset == "stackoverflow_lr":
+                if self.config.dataset_name == "stackoverflow_lr":
                     predicted = (pred > .5).int()
                     correct = predicted.eq(target).sum(axis=-1).eq(target.size(1)).sum()
                     true_positive = ((target * predicted) > .1).int().sum(axis=-1)
@@ -89,7 +94,7 @@ class CentralizedTrainer:
                 metrics['test_correct'] += correct.item()
                 metrics['test_loss'] += loss.item() * target.size(0)
                 metrics['test_total'] += target.size(0)
-        if self.args.rank == 0:
+        if self.config.rank == 0:
             self.save_log(b_is_train=b_is_train, metrics=metrics, epoch_idx=epoch_idx)
 
     def save_log(self, b_is_train, metrics, epoch_idx):
@@ -101,7 +106,7 @@ class CentralizedTrainer:
         all_metrics['num_correct'].append(copy.deepcopy(metrics['test_correct']))
         all_metrics['losses'].append(copy.deepcopy(metrics['test_loss']))
 
-        if self.args.dataset == "stackoverflow_lr":
+        if self.config.dataset_name == "stackoverflow_lr":
             all_metrics['precisions'].append(copy.deepcopy(metrics['test_precision']))
             all_metrics['recalls'].append(copy.deepcopy(metrics['test_recall']))
 
@@ -111,7 +116,7 @@ class CentralizedTrainer:
         precision = sum(all_metrics['precisions']) / sum(all_metrics['num_samples'])
         recall = sum(all_metrics['recalls']) / sum(all_metrics['num_samples'])
 
-        if self.args.dataset == "stackoverflow_lr":
+        if self.config.dataset_name == "stackoverflow_lr":
             stats = {f'{prefix}_acc': acc, f'{prefix}_precision': precision, f'{prefix}_recall': recall,
                      f'{prefix}_loss': loss}
             wandb.log({f"{prefix}/Acc": acc, "epoch": epoch_idx})
