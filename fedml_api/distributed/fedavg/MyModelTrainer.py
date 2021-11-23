@@ -3,7 +3,7 @@ import logging
 import torch
 from torch import nn
 
-from fedml_core.trainer.model_trainer import ModelTrainer
+from FedML.fedml_core import ModelTrainer
 
 
 class MyModelTrainer(ModelTrainer):

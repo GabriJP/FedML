@@ -6,7 +6,7 @@ import torch.utils.model_zoo as model_zoo
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
            'resnet152']
 
-from fedml_api.model.cv.group_normalization import GroupNorm2d
+from FedML.fedml_api.model.cv.group_normalization import GroupNorm2d
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
@@ -19,15 +19,13 @@ model_urls = {
 
 def conv3x3(in_planes, out_planes, stride=1):
     """3x3 convolution with padding"""
-    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
-                     padding=1, bias=False)
+    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
 
 
 def norm2d(planes, num_channels_per_group=32):
     print(f"num_channels_per_group:{num_channels_per_group}")
     if num_channels_per_group > 0:
-        return GroupNorm2d(planes, num_channels_per_group, affine=True,
-                           track_running_stats=False)
+        return GroupNorm2d(planes, num_channels_per_group, affine=True, track_running_stats=False)
     else:
         return nn.BatchNorm2d(planes)
 
@@ -35,8 +33,7 @@ def norm2d(planes, num_channels_per_group=32):
 class BasicBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, inplanes, planes, stride=1, downsample=None,
-                 group_norm=0):
+    def __init__(self, inplanes, planes, stride=1, downsample=None, group_norm=0):
         super(BasicBlock, self).__init__()
         self.conv1 = conv3x3(inplanes, planes, stride)
         self.bn1 = norm2d(planes, group_norm)

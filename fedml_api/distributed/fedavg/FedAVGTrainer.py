@@ -1,4 +1,5 @@
-from fedml_core import ModelTrainer
+from FedML.fedml_core import ModelTrainer
+
 from .utils import transform_tensor_to_list
 from ...data_preprocessing import LocalDataset
 
