@@ -55,8 +55,8 @@ class StackOverflowNWPDataLoader(DataLoader):
         # get global dataset
         if process_id == 0:
             train_data_global, test_data_global = self.get_dataloader(process_id - 1)
-            train_data_num = len(train_data_global.dataset)
-            test_data_num = len(test_data_global.dataset)
+            train_data_num = len(train_data_global.dataset_name)
+            test_data_num = len(test_data_global.dataset_name)
             logging.info(f"train_dl_global number = {train_data_num}")
             logging.info(f"test_dl_global number = {test_data_num}")
             train_data_local = None
@@ -65,7 +65,7 @@ class StackOverflowNWPDataLoader(DataLoader):
         else:
             # get local dataset
             train_data_local, test_data_local = self.get_dataloader(process_id - 1)
-            train_data_num = local_data_num = len(train_data_local.dataset)
+            train_data_num = local_data_num = len(train_data_local.dataset_name)
             logging.info(f"rank = {process_id:d}, local_sample_number = {local_data_num:d}")
             train_data_global = None
             test_data_global = None
@@ -101,7 +101,7 @@ class StackOverflowNWPDataLoader(DataLoader):
 
             for client_idx in tqdm.tqdm(range(DEFAULT_TRAIN_CLIENTS_NUM)):
                 train_data_local, test_data_local = self.get_dataloader(client_idx)
-                local_data_num = len(train_data_local.dataset)
+                local_data_num = len(train_data_local.dataset_name)
                 data_local_num_dict[client_idx] = local_data_num
                 # logging.info("client_idx = %d, local_sample_number = %d" %
                 #              (client_idx, local_data_num))
@@ -112,12 +112,12 @@ class StackOverflowNWPDataLoader(DataLoader):
                 test_data_local_dict[client_idx] = test_data_local
 
             train_data_global = data.DataLoader(
-                data.ConcatDataset(list(dl.dataset for dl in list(train_data_local_dict.values()))),
+                data.ConcatDataset(list(dl.dataset_name for dl in list(train_data_local_dict.values()))),
                 batch_size=batch_size, shuffle=True)
             train_data_num = len(train_data_global.dataset)
 
             test_data_global = data.DataLoader(
-                data.ConcatDataset(list(dl.dataset for dl in list(test_data_local_dict.values()) if dl is not None)),
+                data.ConcatDataset(list(dl.dataset_name for dl in list(test_data_local_dict.values()) if dl is not None)),
                 batch_size=batch_size, shuffle=True)
             test_data_num = len(test_data_global.dataset)
 

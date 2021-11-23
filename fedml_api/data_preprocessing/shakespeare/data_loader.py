@@ -95,7 +95,7 @@ class ShakespeareDataLoader(DataLoader):
             batch_data.append((batched_x, batched_y))
         return batch_data
 
-    def load_partition_data_shakespeare(self):
+    def load_partition_data(self):
         users, groups, train_data, test_data = self.read_data()
 
         if len(groups) == 0:

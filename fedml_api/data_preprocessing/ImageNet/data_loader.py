@@ -13,8 +13,8 @@ class ImageNetDataLoader(DataLoader):
     IMAGENET_MEAN = [0.485, 0.456, 0.406]
     IMAGENET_STD = [0.229, 0.224, 0.225]
 
-    def __init__(self, data_dir, train_bs, test_bs, client_number):
-        super().__init__(data_dir, train_bs, test_bs)
+    def __init__(self, data_dir, batch_size, client_number):
+        super().__init__(data_dir, batch_size, batch_size)
         self.client_number = client_number
 
     @classmethod
@@ -180,37 +180,26 @@ class ImageNetDataLoader(DataLoader):
                             local_data_num_dict=data_local_num_dict, train_data_local_dict=train_data_local_dict,
                             test_data_local_dict=test_data_local_dict, output_len=1000)
 
-# if __name__ == '__main__':
-#     # data_dir = '/home/datasets/imagenet/ILSVRC2012_dataset'
-#     data_dir = '/home/datasets/imagenet/imagenet_hdf5/imagenet-shuffled.hdf5'
-#
-#     client_number = 100
-#     train_data_num, test_data_num, train_data_global, test_data_global, \
-#     data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num = \
-#         load_partition_data_ImageNet(None, data_dir,
-#                                      partition_method=None, partition_alpha=None, client_number=client_number,
-#                                      batch_size=10)
-#
-#     print(train_data_num, test_data_num, class_num)
-#     print(data_local_num_dict)
-#
-#     print(train_data_num, test_data_num, class_num)
-#     print(data_local_num_dict)
-#
-#     i = 0
-#     for data, label in train_data_global:
-#         print(data)
-#         print(label)
-#         i += 1
-#         if i > 5:
-#             break
-#     print("=============================\n")
-#
-#     for client_idx in range(client_number):
-#         i = 0
-#         for data, label in train_data_local_dict[client_idx]:
-#             print(data)
-#             print(label)
-#             i += 1
-#             if i > 5:
-#                 break
+
+if __name__ == '__main__':
+    # data_dir = '/home/datasets/imagenet/ILSVRC2012_dataset'
+    main_data_dir = '/home/datasets/imagenet/imagenet_hdf5/imagenet-shuffled.hdf5'
+    main_data_dir = '/home/trabajo/PycharmProjects/FedML-IoT/FedML/data/ImageNet/'
+
+    main_client_number = 100
+
+    dl = ImageNetDataLoader(main_data_dir, 10, main_client_number)
+    ds = dl.load_partition_data(False)
+
+    print(ds.train_data_num, ds.test_data_num, ds.output_len)
+    print(ds.local_data_num_dict)
+
+    for _, (data, label) in zip(range(5), ds.train_data_global):
+        print(data)
+        print(label)
+    print("=============================\n")
+
+    for client_idx in range(main_client_number):
+        for _, (data, label) in zip(range(5), ds.train_data_local_dict[client_idx]):
+            print(data)
+            print(label)

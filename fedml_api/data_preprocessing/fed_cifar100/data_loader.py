@@ -75,7 +75,7 @@ class FederatedCifar10DatasetLoader(CifarDataLoader):
         # scale img to range [0,1] to fit ToTensor api
         img = torch.div(img, 255.0)
         transoformed_img = torch.stack(
-            [cls.cifar_transform(i.type(torch.DoubleTensor).mean(), i.type(torch.DoubleTensor).std(), train)
+            [cls.cifar_transform(i.msg_type(torch.DoubleTensor).mean(), i.msg_type(torch.DoubleTensor).std(), train)
              (i.permute(2, 0, 1)) for i in img])
         return transoformed_img
 

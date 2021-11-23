@@ -63,8 +63,7 @@ class ImageNetHDF5(data.Dataset):
         self.all_data_hdf5 = DatasetHDF5(self.hdf5fn, 'train' if self.train else 'val',
                                          transform=self.transform, target_transform=self.target_transform)
 
-        self.data_local_num_dict, self.net_dataidx_map = \
-            self._get_net_dataidx_map()
+        self.data_local_num_dict, self.net_dataidx_map = self._get_net_dataidx_map()
 
         """
             self.local_data_idx is a list containing indexes of local client
@@ -127,14 +126,10 @@ class ImageNetHDF5(data.Dataset):
 
 class ImageNetTruncatedHDF5(data.Dataset):
 
-    def __init__(self, imagenet_dataset: ImageNetHDF5, dataidxs, net_dataidx_map, train=True, transform=None,
-                 target_transform=None, download=False):
+    def __init__(self, imagenet_dataset: ImageNetHDF5, dataidxs, train=True):
 
         self.dataidxs = dataidxs
         self.train = train
-        # self.transform = transform
-        # self.target_transform = target_transform
-        self.download = download
 
         self.all_data_hdf5 = imagenet_dataset
 

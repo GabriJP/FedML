@@ -14,9 +14,11 @@ class LandmarksDataLoader(DataLoader):
     IMAGENET_MEAN = [0.5, 0.5, 0.5]
     IMAGENET_STD = [0.5, 0.5, 0.5]
 
-    def __init__(self, data_dir, train_bs, test_bs, client_number):
+    def __init__(self, data_dir, train_bs, test_bs, client_number, fed_train_map_file, fed_test_map_file):
         super().__init__(data_dir, train_bs, test_bs)
         self.client_number = client_number
+        self.fed_train_map_file = fed_train_map_file,
+        self.fed_test_map_file = fed_test_map_file
 
     @staticmethod
     def _read_csv(path: str):
@@ -119,9 +121,9 @@ class LandmarksDataLoader(DataLoader):
 
         return train_dl, test_dl
 
-    def load_partition_data(self, fed_train_map_file, fed_test_map_file):
-        train_files, data_local_num_dict, net_dataidx_map = self.get_mapping_per_user(fed_train_map_file)
-        test_files = self._read_csv(fed_test_map_file)
+    def load_partition_data(self):
+        train_files, data_local_num_dict, net_dataidx_map = self.get_mapping_per_user(self.fed_train_map_file)
+        test_files = self._read_csv(self.fed_test_map_file)
 
         class_num = len(np.unique([item['class'] for item in train_files]))
         train_data_num = len(train_files)
@@ -168,8 +170,8 @@ if __name__ == '__main__':
     else:
         raise NotImplementedError
 
-    dl = LandmarksDataLoader(main_data_dir, 10, 10, main_client_number)
-    ds = dl.load_partition_data(main_fed_train_map_file, main_fed_test_map_file)
+    dl = LandmarksDataLoader(main_data_dir, 10, 10, main_client_number, main_fed_train_map_file, main_fed_test_map_file)
+    ds = dl.load_partition_data()
 
     print(ds.train_data_num, ds.test_data_num, ds.output_len)
     print(ds.local_data_num_dict)

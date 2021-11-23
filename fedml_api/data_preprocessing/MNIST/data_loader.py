@@ -10,8 +10,8 @@ from ..base import DataLoader, LocalDataset
 
 
 class MNISTDataLoader(DataLoader):
-    def __init__(self, data_dir='./../../../data/MNIST', train_bs=10, test_bs=10):
-        super().__init__(data_dir, train_bs, test_bs)
+    def __init__(self, data_dir='./../../../data/MNIST', batch_size=10):
+        super().__init__(data_dir, batch_size, batch_size)
 
     @staticmethod
     def read_data(train_data_dir, test_data_dir):
@@ -93,7 +93,7 @@ class MNISTDataLoader(DataLoader):
         users, groups, train_data, test_data = self.read_data(train_path, test_path)
 
         if len(groups) == 0:
-            groups = [None] * users
+            groups = [None] * len(users)
         train_data_num = 0
         test_data_num = 0
         train_data_local_dict = dict()
@@ -117,13 +117,12 @@ class MNISTDataLoader(DataLoader):
             # index using client index
             train_data_local_dict[client_idx] = train_batch
             test_data_local_dict[client_idx] = test_batch
-            train_data_global += train_batch
-            test_data_global += test_batch
+            train_data_global.append(train_batch)
+            test_data_global.append(test_batch)
         logging.info("finished the loading data")
-        client_num = client_idx
 
-        return LocalDataset(client_num=client_num, train_data_num=train_data_num, test_data_num=test_data_num,
-                            train_data_global=train_data_global, test_data_global=test_data_global,
-                            train_data_local_num_dict=train_data_local_num_dict,
-                            train_data_local_dict=train_data_local_dict, test_data_local_dict=test_data_local_dict,
-                            output_len=10)
+        return LocalDataset(
+            client_num=client_idx, train_data_num=train_data_num, test_data_num=test_data_num,
+            train_data_global=train_data_global, test_data_global=test_data_global,
+            train_data_local_num_dict=train_data_local_num_dict, train_data_local_dict=train_data_local_dict,
+            test_data_local_dict=test_data_local_dict, output_len=10)

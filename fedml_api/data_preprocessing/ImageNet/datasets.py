@@ -94,7 +94,7 @@ class _BaseImageNet(data.Dataset, ABC):
 
 
 class ImageNet(_BaseImageNet):
-    def __init__(self, data_dir, dataidxs=None, train=True, transform=None, target_transform=None, download=False):
+    def __init__(self, data_dir, dataidxs=None, train=True, transform=None, target_transform=None):
         """
             Generating this class too many times will be time-consuming.
             So it will be better calling this once and put it into ImageNet_truncated.
@@ -102,7 +102,6 @@ class ImageNet(_BaseImageNet):
         super().__init__(transform, target_transform)
         self.dataidxs = dataidxs
         self.train = train
-        self.download = download
         if self.train:
             self.data_dir = os.path.join(data_dir, 'train')
         else:

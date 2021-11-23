@@ -77,7 +77,7 @@ class StackOverflowLRDataLoader(DataLoader):
         else:
             # get local dataset
             train_data_local, test_data_local = self.get_dataloader(process_id - 1)
-            local_data_num = len(train_data_local.dataset)
+            local_data_num = len(train_data_local.dataset_name)
             # logging.info("rank = %d, local_sample_number = %d" %
             #              (process_id, local_data_num))
             train_data_global = None
@@ -113,7 +113,7 @@ class StackOverflowLRDataLoader(DataLoader):
 
             for client_idx in tqdm.tqdm(range(DEFAULT_TRAIN_CLIENTS_NUM)):
                 train_data_local, test_data_local = self.get_dataloader(client_idx)
-                local_data_num = len(train_data_local.dataset)
+                local_data_num = len(train_data_local.dataset_name)
                 data_local_num_dict[client_idx] = local_data_num
                 # logging.info("client_idx = %d, local_sample_number = %d" %
                 #              (client_idx, local_data_num if test_data_local==None else len(test_data_local.dataset)))
@@ -124,13 +124,13 @@ class StackOverflowLRDataLoader(DataLoader):
                 test_data_local_dict[client_idx] = test_data_local
 
             train_data_global = data.DataLoader(data.ConcatDataset(
-                list(dl.dataset for dl in list(train_data_local_dict.values()))),
+                list(dl.dataset_name for dl in list(train_data_local_dict.values()))),
                 batch_size=batch_size,
                 shuffle=True)
             train_data_num = len(train_data_global.dataset)
 
             test_data_global = data.DataLoader(data.ConcatDataset(
-                list(dl.dataset for dl in list(test_data_local_dict.values())
+                list(dl.dataset_name for dl in list(test_data_local_dict.values())
                      if dl is not None)),
                 batch_size=batch_size,
                 shuffle=True)

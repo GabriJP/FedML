@@ -283,7 +283,7 @@ def get_dataloader_normal_case(dataset, datadir, train_bs, test_bs,
 def load_poisoned_dataset(args):
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
-    if args.dataset in ("mnist", "emnist"):
+    if args.dataset_name in ("mnist", "emnist"):
         if args.fraction < 1:
             fraction = args.fraction  # 0.1 #10
         else:
@@ -325,7 +325,7 @@ def load_poisoned_dataset(args):
                                                                      **kwargs)
 
 
-    elif args.dataset == "cifar10":
+    elif args.dataset_name == "cifar10":
         if args.poison_type == "southwest":
             transform_train = transforms.Compose([
                 transforms.RandomCrop(32, padding=4),

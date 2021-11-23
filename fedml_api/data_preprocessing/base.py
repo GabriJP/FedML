@@ -25,7 +25,7 @@ class LocalDataset(Dataset):
     train_data_local_dict: Union[Dict[int, tDataLoader], Dict[int, List[Tuple[Any, Any]]]]
     test_data_local_dict: Union[Dict[int, tDataLoader], Dict[int, List[Tuple[Any, Any]]]]
     local_data_num_dict: Optional[object] = None
-    train_data_local_num_dict: Optional[object] = None
+    train_data_local_num_dict: Optional[Dict[int, int]] = None
     client_num: Optional[int] = None
 
 
@@ -65,6 +65,18 @@ class LocalDataLoader(DataLoader):
         self.partition_method = partition_method
         self.partition_alpha = partition_alpha
         self.client_number = client_number
+
+    def load_partition_data(self) -> LocalDataset:
+        raise NotImplementedError
+
+    def load_partition_data_federated(self) -> FederatedDataset:
+        raise NotImplementedError
+
+    def load_partition_data_distributed(self) -> DistributedDataset:
+        raise NotImplementedError
+
+    def load_partition_data_distributed_federated(self) -> DistributedFederatedDataset:
+        raise NotImplementedError
 
 
 class CifarDataLoader(LocalDataLoader, ABC):
