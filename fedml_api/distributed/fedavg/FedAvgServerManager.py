@@ -1,40 +1,28 @@
 import logging
-import os
-import sys
 
+from fedml_core import RunConfig
+from fedml_core.distributed.communication.message import Message
+from fedml_core.distributed.server.server_manager import ServerManager
 from .message_define import MyMessage
 from .utils import transform_tensor_to_list
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML")))
-try:
-    from fedml_core.distributed.communication.message import Message
-    from fedml_core.distributed.server.server_manager import ServerManager
-except ImportError:
-    from FedML.fedml_core.distributed.communication.message import Message
-    from FedML.fedml_core.distributed.server.server_manager import ServerManager
-
 
 class FedAVGServerManager(ServerManager):
-    def __init__(self, args, aggregator, comm=None, rank=0, size=0, backend="MPI", is_preprocessed=False,
-                 preprocessed_client_lists=None):
-        super().__init__(args, comm, rank, size, backend)
-        self.args = args
+    def __init__(self, aggregator, config: RunConfig, comm=None, rank=0, size=0, backend="MPI", is_preprocessed=False,
+                 preprocessed_client_lists=None, grpc_ipconfig_path=None, trpc_master_config_path=None):
+        super().__init__(comm, rank, size, backend, grpc_ipconfig_path, trpc_master_config_path)
         self.aggregator = aggregator
-        self.round_num = args.comm_round
+        self.config = config
         self.round_idx = 0
         self.is_preprocessed = is_preprocessed
         self.preprocessed_client_lists = preprocessed_client_lists
 
-    def run(self):
-        super().run()
-
     def send_init_msg(self):
         # sampling clients
-        client_indexes = self.aggregator.client_sampling(self.round_idx, self.args.client_num_in_total,
-                                                         self.args.client_num_per_round)
+        client_indexes = self.aggregator.client_sampling(self.round_idx, self.config.client_num_in_total,
+                                                         self.config.client_num_per_round)
         global_model_params = self.aggregator.get_global_model_params()
-        if self.args.is_mobile == 1:
+        if self.config.is_mobile:
             global_model_params = transform_tensor_to_list(global_model_params)
         for process_id in range(1, self.size):
             self.send_message_init_config(process_id, global_model_params, client_indexes[process_id - 1])
@@ -57,7 +45,7 @@ class FedAVGServerManager(ServerManager):
 
             # start the next round
             self.round_idx += 1
-            if self.round_idx == self.round_num:
+            if self.round_idx == self.config.comm_round:
                 # post_complete_message_to_sweep_process(self.args)
                 self.finish()
                 print('here')
@@ -65,17 +53,17 @@ class FedAVGServerManager(ServerManager):
             if self.is_preprocessed:
                 if self.preprocessed_client_lists is None:
                     # sampling has already been done in data preprocessor
-                    client_indexes = [self.round_idx] * self.args.client_num_per_round
+                    client_indexes = [self.round_idx] * self.config.client_num_per_round
                 else:
                     client_indexes = self.preprocessed_client_lists[self.round_idx]
             else:
                 # sampling clients
-                client_indexes = self.aggregator.client_sampling(self.round_idx, self.args.client_num_in_total,
-                                                                 self.args.client_num_per_round)
+                client_indexes = self.aggregator.client_sampling(self.round_idx, self.config.client_num_in_total,
+                                                                 self.config.client_num_per_round)
 
             print(f'indexes of clients: {client_indexes}')
             print(f"size = {self.size:d}")
-            if self.args.is_mobile == 1:
+            if self.config.is_mobile:
                 global_model_params = transform_tensor_to_list(global_model_params)
 
             for receiver_id in range(1, self.size):

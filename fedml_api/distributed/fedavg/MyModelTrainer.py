@@ -3,10 +3,7 @@ import logging
 import torch
 from torch import nn
 
-try:
-    from fedml_core.trainer.model_trainer import ModelTrainer
-except ImportError:
-    from FedML.fedml_core.trainer.model_trainer import ModelTrainer
+from fedml_core.trainer.model_trainer import ModelTrainer
 
 
 class MyModelTrainer(ModelTrainer):
@@ -16,22 +13,21 @@ class MyModelTrainer(ModelTrainer):
     def set_model_params(self, model_parameters):
         self.model.load_state_dict(model_parameters)
 
-    def train(self, train_data, device, args):
+    def train(self, train_data, device):
         model = self.model
 
         model.to(device)
         model.train()
 
         criterion = nn.CrossEntropyLoss().to(device)
-        if args.client_optimizer == "sgd":
-            optimizer = torch.optim.SGD(model.parameters(), lr=args.lr)
+        if self.client_optimizer == "sgd":
+            optimizer = torch.optim.SGD(model.parameters(), lr=self.lr)
         else:
-            optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()),
-                                         lr=args.lr,
-                                         weight_decay=args.wd, amsgrad=True)
-        epoch_loss = []
-        for epoch in range(args.epochs):
-            batch_loss = []
+            optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=self.lr,
+                                         weight_decay=self.wd, amsgrad=True)
+        epoch_loss = list()
+        for epoch in range(self.epochs):
+            batch_loss = list()
             for batch_idx, (x, labels) in enumerate(train_data):
                 # logging.info(images.shape)
                 x, labels = x.to(device), labels.to(device)
@@ -47,7 +43,7 @@ class MyModelTrainer(ModelTrainer):
                     f'(Trainer_ID {self.id}. Local Training Epoch: {epoch} \t'
                     f'Loss: {sum(epoch_loss) / len(epoch_loss):.6f}')
 
-    def test(self, test_data, device, args):
+    def test(self, test_data, device):
         model = self.model
 
         model.eval()
@@ -68,7 +64,7 @@ class MyModelTrainer(ModelTrainer):
                 target = target.to(device)
                 pred = model(x)
                 loss = criterion(pred, target)
-                if args.dataset == "stackoverflow_lr":
+                if self.dataset_name == "stackoverflow_lr":
                     predicted = (pred > .5).int()
                     correct = predicted.eq(target).sum(axis=-1).eq(target.size(1)).sum()
                     true_positive = ((target * predicted) > .1).int().sum(axis=-1)
@@ -86,5 +82,5 @@ class MyModelTrainer(ModelTrainer):
 
         return metrics
 
-    def test_on_the_server(self, train_data_local_dict, test_data_local_dict, device, args=None) -> bool:
+    def test_on_the_server(self, train_data_local_dict, test_data_local_dict, device, args=None):
         return False

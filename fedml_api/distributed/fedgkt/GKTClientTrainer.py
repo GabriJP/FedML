@@ -84,7 +84,7 @@ class GKTClientTrainer(object):
 
                     logging.info(
                         f'client {self.client_index} - Update Epoch: {epoch} '
-                        f'[{batch_idx * len(images)}/{len(self.local_training_data.dataset)} '
+                        f'[{batch_idx * len(images)}/{len(self.local_training_data.dataset_name)} '
                         f'({100. * batch_idx / len(self.local_training_data):.0f}%)]\tLoss: {loss.item():.6f}')
                     batch_loss.append(loss.item())
                 epoch_loss.append(sum(batch_loss) / len(batch_loss))

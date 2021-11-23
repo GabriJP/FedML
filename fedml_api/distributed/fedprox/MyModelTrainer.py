@@ -67,7 +67,7 @@ class MyModelTrainer(ModelTrainer):
                 target = target.to(device)
                 pred = model(x)
                 loss = criterion(pred, target)
-                if args.dataset == "stackoverflow_lr":
+                if args.dataset_name == "stackoverflow_lr":
                     predicted = (pred > .5).int()
                     correct = predicted.eq(target).sum(axis=-1).eq(target.size(1)).sum()
                     true_positive = ((target * predicted) > .1).int().sum(axis=-1)

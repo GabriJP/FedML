@@ -7,32 +7,25 @@ import numpy as np
 import torch
 import wandb
 
+from fedml_core import RunConfig
 from .utils import transform_list_to_tensor
+from ...data_preprocessing import LocalDataset
 
 
 class FedAVGAggregator:
-
-    def __init__(self, train_global, test_global, all_train_data_num,
-                 train_data_local_dict, test_data_local_dict, train_data_local_num_dict, worker_num, device,
-                 args, model_trainer):
+    def __init__(self, device, worker_num, config: RunConfig, dataset: LocalDataset, model_trainer):
+        self.device = device
+        self.worker_num = worker_num
+        self.config = config
+        self.dataset = dataset
         self.trainer = model_trainer
 
-        self.args = args
-        self.train_global = train_global
-        self.test_global = test_global
         self.val_global = self._generate_validation_set()
-        self.all_train_data_num = all_train_data_num
 
-        self.train_data_local_dict = train_data_local_dict
-        self.test_data_local_dict = test_data_local_dict
-        self.train_data_local_num_dict = train_data_local_num_dict
-
-        self.worker_num = worker_num
-        self.device = device
         self.model_dict = dict()
         self.sample_num_dict = dict()
         self.flag_client_model_uploaded_dict = dict()
-        for idx in range(self.worker_num):
+        for idx in range(self.config.client_num_in_total):
             self.flag_client_model_uploaded_dict[idx] = False
 
     def get_global_model_params(self):
@@ -61,7 +54,7 @@ class FedAVGAggregator:
         training_num = 0
 
         for idx in range(self.worker_num):
-            if self.args.is_mobile == 1:
+            if self.config.is_mobile:
                 self.model_dict[idx] = transform_list_to_tensor(self.model_dict[idx])
             model_list.append((self.sample_num_dict[idx], self.model_dict[idx]))
             training_num += self.sample_num_dict[idx]
@@ -71,8 +64,8 @@ class FedAVGAggregator:
         # logging.info("################aggregate: %d" % len(model_list))
         num0, averaged_params = model_list[0]
         for k in averaged_params.keys():
-            for i in range(0, len(model_list)):
-                local_sample_number, local_model_params = model_list[i]
+            for i, model in enumerate(model_list):
+                local_sample_number, local_model_params = model
                 w = local_sample_number / training_num
                 if i == 0:
                     averaged_params[k] = local_model_params[k] * w
@@ -97,28 +90,28 @@ class FedAVGAggregator:
         return client_indexes
 
     def _generate_validation_set(self, num_samples=10000):
-        if self.args.dataset.startswith("stackoverflow"):
-            test_data_num = len(self.test_global.dataset)
+        if self.config.dataset_name.startswith("stackoverflow"):
+            test_data_num = len(self.dataset.test_data_global.dataset)
             sample_indices = random.sample(range(test_data_num), min(num_samples, test_data_num))
-            subset = torch.utils.data.Subset(self.test_global.dataset, sample_indices)
+            subset = torch.utils.data.Subset(self.dataset.test_data_global.dataset, sample_indices)
             sample_testset = torch.utils.data.LocalDataLoader(subset, batch_size=self.args.batch_size)
             return sample_testset
-        else:
-            return self.test_global
+
+        return self.dataset.test_data_global
 
     def test_on_server_for_all_clients(self, round_idx):
-        if self.trainer.test_on_the_server(self.train_data_local_dict, self.test_data_local_dict, self.device,
-                                           self.args):
+        if self.trainer.test_on_the_server(self.dataset.train_data_local_dict, self.dataset.test_data_local_dict,
+                                           self.device):
             return
 
-        if round_idx % self.args.frequency_of_the_test == 0 or round_idx == self.args.comm_round - 1:
+        if round_idx % self.config.frequency_of_the_test == 0 or round_idx == self.config.comm_round - 1:
             logging.info(f"################test_on_server_for_all_clients : {round_idx}")
             train_num_samples = []
             train_tot_corrects = []
             train_losses = []
-            for client_idx in range(self.args.client_num_in_total):
+            for client_idx in range(self.config.client_num_in_total):
                 # train data
-                metrics = self.trainer.test(self.train_data_local_dict[client_idx], self.device, self.args)
+                metrics = self.trainer.test(self.dataset.train_data_local_dict[client_idx], self.device)
                 train_tot_correct, train_num_sample, train_loss = metrics['test_correct'], metrics['test_total'], \
                                                                   metrics['test_loss']
                 train_tot_corrects.append(copy.deepcopy(train_tot_correct))
@@ -129,7 +122,7 @@ class FedAVGAggregator:
                 Note: CI environment is CPU-based computing. 
                 The training speed for RNN training is to slow in this setting, so we only test a client to make sure there is no programming error.
                 """
-                if self.args.ci == 1:
+                if self.config.ci == 1:
                     break
 
             # test on training dataset
@@ -145,10 +138,10 @@ class FedAVGAggregator:
             test_tot_corrects = []
             test_losses = []
 
-            if round_idx == self.args.comm_round - 1:
-                metrics = self.trainer.test(self.test_global, self.device, self.args)
+            if round_idx == self.config.comm_round - 1:
+                metrics = self.trainer.test(self.dataset.test_data_global, self.device)
             else:
-                metrics = self.trainer.test(self.val_global, self.device, self.args)
+                metrics = self.trainer.test(self.val_global, self.device)
 
             test_tot_correct, test_num_sample, test_loss = metrics['test_correct'], metrics['test_total'], metrics[
                 'test_loss']

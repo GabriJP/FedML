@@ -1,74 +1,71 @@
 from mpi4py import MPI
 
+from fedml_core import RunConfig
 from .FedAVGAggregator import FedAVGAggregator
 from .FedAVGTrainer import FedAVGTrainer
 from .FedAvgClientManager import FedAVGClientManager
 from .FedAvgServerManager import FedAVGServerManager
+from ...data_preprocessing import LocalDataset
 from ...standalone.fedavg.my_model_trainer_classification import MyModelTrainer as MyModelTrainerCLS
 from ...standalone.fedavg.my_model_trainer_nwp import MyModelTrainer as MyModelTrainerNWP
 from ...standalone.fedavg.my_model_trainer_tag_prediction import MyModelTrainer as MyModelTrainerTAG
 
 
-def FedML_init():
+def fed_ml_init():
     comm = MPI.COMM_WORLD
     process_id = comm.Get_rank()
     worker_number = comm.Get_size()
     return comm, process_id, worker_number
 
 
-def FedML_FedAvg_distributed(process_id, worker_number, device, comm, model, train_data_num, train_data_global,
-                             test_data_global, train_data_local_num_dict, train_data_local_dict, test_data_local_dict,
-                             args, model_trainer=None, preprocessed_sampling_lists=None, ):
+def fed_ml_fed_avg_distributed(comm, process_id, worker_number, device, model, config: RunConfig, dataset: LocalDataset,
+                               model_trainer=None, preprocessed_sampling_lists=None):
     if process_id == 0:
-        init_server(args, device, comm, process_id, worker_number, model, train_data_num, train_data_global,
-                    test_data_global, train_data_local_dict, test_data_local_dict, train_data_local_num_dict,
-                    model_trainer, preprocessed_sampling_lists, )
+        init_server(comm, process_id, worker_number, device, model, model_trainer, dataset, config,
+                    preprocessed_sampling_lists)
     else:
-        init_client(args, device, comm, process_id, worker_number, model, train_data_num, train_data_local_num_dict,
-                    train_data_local_dict, test_data_local_dict, model_trainer, )
+        init_client(comm, process_id, worker_number, device, model, model_trainer, dataset, config)
 
 
-def init_server(args, device, comm, rank, size, model, train_data_num, train_data_global, test_data_global,
-                train_data_local_dict, test_data_local_dict, train_data_local_num_dict, model_trainer,
-                preprocessed_sampling_lists=None, ):
+def init_server(comm, process_id, worker_number, device, model, model_trainer, dataset: LocalDataset, config: RunConfig,
+                preprocessed_sampling_lists=None):
     if model_trainer is None:
-        if args.dataset == "stackoverflow_lr":
-            model_trainer = MyModelTrainerTAG(model)
-        elif args.dataset in ["fed_shakespeare", "stackoverflow_nwp"]:
-            model_trainer = MyModelTrainerNWP(model)
+        if config.dataset_name == "stackoverflow_lr":
+            model_trainer = MyModelTrainerTAG(model, config)
+        elif config.dataset_name in {"fed_shakespeare", "stackoverflow_nwp"}:
+            model_trainer = MyModelTrainerNWP(model, config)
         else:  # default model trainer is for classification problem
-            model_trainer = MyModelTrainerCLS(model)
+            model_trainer = MyModelTrainerCLS(model, config)
+
     model_trainer.set_id(-1)
 
     # aggregator
-    worker_num = size - 1
-    aggregator = FedAVGAggregator(train_data_global, test_data_global, train_data_num, train_data_local_dict,
-                                  test_data_local_dict, train_data_local_num_dict, worker_num, device, args,
-                                  model_trainer)
+    worker_num = worker_number - 1
+    aggregator = FedAVGAggregator(device, worker_num, config, dataset, model_trainer)
 
     # start the distributed training
-    backend = args.backend
     if preprocessed_sampling_lists is None:
-        server_manager = FedAVGServerManager(args, aggregator, comm, rank, size, backend)
+        server_manager = FedAVGServerManager(aggregator, comm, process_id, worker_number, config.backend)
     else:
-        server_manager = FedAVGServerManager(args, aggregator, comm, rank, size, backend, is_preprocessed=True,
+        server_manager = FedAVGServerManager(aggregator, comm, process_id, worker_number, config.backend,
+                                             is_preprocessed=True,
                                              preprocessed_client_lists=preprocessed_sampling_lists)
     server_manager.send_init_msg()
     server_manager.run()
 
 
-def init_client(args, device, comm, process_id, size, model, train_data_num, train_data_local_num_dict,
-                train_data_local_dict, test_data_local_dict, model_trainer=None):
+def init_client(comm, process_id, worker_number, device, model, model_trainer, dataset: LocalDataset,
+                config: RunConfig):
     client_index = process_id - 1
     if model_trainer is None:
-        if args.dataset == "stackoverflow_lr":
-            model_trainer = MyModelTrainerTAG(model)
-        elif args.dataset in ["fed_shakespeare", "stackoverflow_nwp"]:
-            model_trainer = MyModelTrainerNWP(model)
+        if config.dataset_name == "stackoverflow_lr":
+            model_trainer = MyModelTrainerTAG(model, config)
+        elif config.dataset_name in {"fed_shakespeare", "stackoverflow_nwp"}:
+            model_trainer = MyModelTrainerNWP(model, config)
         else:  # default model trainer is for classification problem
-            model_trainer = MyModelTrainerCLS(model)
+            model_trainer = MyModelTrainerCLS(model, config)
     model_trainer.set_id(client_index)
-    backend = args.backend
+    backend = config.backend
     trainer = FedAVGTrainer(client_index, train_data_local_dict, train_data_local_num_dict, test_data_local_dict,
                             train_data_num, device, args, model_trainer)
     client_manager = FedAVGClientManager(args, trainer, comm, process_id, size, backend)

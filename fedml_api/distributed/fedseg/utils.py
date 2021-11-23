@@ -163,7 +163,7 @@ class Saver(object):
 
     def __init__(self, args):
         self.args = args
-        self.directory = os.path.join('run', args.dataset, args.model, args.checkname)
+        self.directory = os.path.join('run', args.dataset_name, args.model, args.checkname)
         self.runs = sorted(glob.glob(os.path.join(self.directory, 'experiment_*')))
         run_id = int(self.runs[-1].split('_')[-1]) + 1 if self.runs else 0
 
@@ -209,7 +209,7 @@ class Saver(object):
         p['backbone_freezed'] = self.args.backbone_freezed
         p['extract_feat'] = self.args.extract_feat
         p['outstride'] = self.args.outstride
-        p['dataset'] = self.args.dataset
+        p['dataset'] = self.args.dataset_name
         p['partition_method'] = self.args.partition_method
         p['partition_alpha'] = self.args.partition_alpha
         p['client_num_in_total'] = self.args.client_num_in_total

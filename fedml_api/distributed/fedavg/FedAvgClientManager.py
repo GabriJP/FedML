@@ -1,16 +1,7 @@
 import logging
-import os
-import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML")))
-
-try:
-    from fedml_core.distributed.client.client_manager import ClientManager
-    from fedml_core.distributed.communication.message import Message
-except ImportError:
-    from FedML.fedml_core.distributed.client.client_manager import ClientManager
-    from FedML.fedml_core.distributed.communication.message import Message
+from FedML.fedml_core.distributed.client.client_manager import ClientManager
+from FedML.fedml_core.distributed.communication.message import Message
 from .message_define import MyMessage
 from .utils import transform_list_to_tensor
 
@@ -22,12 +13,8 @@ class FedAVGClientManager(ClientManager):
         self.num_rounds = args.comm_round
         self.round_idx = 0
 
-    def run(self):
-        super().run()
-
     def register_message_receive_handlers(self):
-        self.register_message_receive_handler(MyMessage.MSG_TYPE_S2C_INIT_CONFIG,
-                                              self.handle_message_init)
+        self.register_message_receive_handler(MyMessage.MSG_TYPE_S2C_INIT_CONFIG, self.handle_message_init)
         self.register_message_receive_handler(MyMessage.MSG_TYPE_S2C_SYNC_MODEL_TO_CLIENT,
                                               self.handle_message_receive_model_from_server)
 
@@ -70,6 +57,6 @@ class FedAVGClientManager(ClientManager):
         self.send_message(message)
 
     def __train(self):
-        logging.info(f"#######training########### round_id = {self.round_idx:d}")
+        logging.info(f"#######training########### round_id = {self.round_idx}")
         weights, local_sample_num = self.trainer.train(self.round_idx)
         self.send_model_to_server(0, weights, local_sample_num)

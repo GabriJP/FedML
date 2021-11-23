@@ -133,10 +133,10 @@ class FedOptAggregator(object):
         return client_indexes
 
     def _generate_validation_set(self, num_samples=10000):
-        if self.args.dataset.startswith("stackoverflow"):
-            test_data_num = len(self.test_global.dataset)
+        if self.args.dataset_name.startswith("stackoverflow"):
+            test_data_num = len(self.test_global.dataset_name)
             sample_indices = random.sample(range(test_data_num), min(num_samples, test_data_num))
-            subset = torch.utils.data.Subset(self.test_global.dataset, sample_indices)
+            subset = torch.utils.data.Subset(self.test_global.dataset_name, sample_indices)
             sample_testset = torch.utils.data.LocalDataLoader(subset, batch_size=self.args.batch_size)
             return sample_testset
         else:

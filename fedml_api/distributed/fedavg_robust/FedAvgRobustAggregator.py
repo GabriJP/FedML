@@ -75,7 +75,7 @@ def test(model, device, test_loader, criterion, mode="raw-task", dataset="cifar1
                 label = target[image_index]
                 class_correct[label] += c[image_index].item()
                 class_total[label] += 1
-    test_loss /= len(test_loader.dataset)
+    test_loss /= len(test_loader.dataset_name)
 
     if mode == "raw-task":
         for i in range(10):
@@ -84,9 +84,9 @@ def test(model, device, test_loader, criterion, mode="raw-task", dataset="cifar1
             if i == target_class:
                 task_acc = 100 * class_correct[i] / class_total[i]
 
-        logging.info(f'\nTest set: Average loss: {test_loss:.4f}, Accuracy: {correct}/{len(test_loader.dataset)} '
-                     f'({100. * correct / len(test_loader.dataset):.2f}%)\n')
-        final_acc = 100. * correct / len(test_loader.dataset)
+        logging.info(f'\nTest set: Average loss: {test_loss:.4f}, Accuracy: {correct}/{len(test_loader.dataset_name)} '
+                     f'({100. * correct / len(test_loader.dataset_name):.2f}%)\n')
+        final_acc = 100. * correct / len(test_loader.dataset_name)
 
     elif mode == "targetted-task":
 
@@ -266,7 +266,7 @@ class FedAvgRobustAggregator:
     def test_target_accuracy(self, round_idx):
         test(self.model, self.device, self.targetted_task_test_loader,
              criterion=nn.CrossEntropyLoss().to(self.device),
-             mode="targetted-task", dataset=self.args.dataset, poison_type=self.args.poison_type)
+             mode="targetted-task", dataset=self.args.dataset_name, poison_type=self.args.poison_type)
 
     def _infer(self, test_data):
         self.model.eval()

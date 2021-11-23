@@ -32,9 +32,9 @@ def init_server(args, device, comm, rank, size, model, train_data_num, train_dat
                 train_data_local_dict, test_data_local_dict, train_data_local_num_dict, model_trainer,
                 preprocessed_sampling_lists=None):
     if model_trainer is None:
-        if args.dataset == "stackoverflow_lr":
+        if args.dataset_name == "stackoverflow_lr":
             model_trainer = MyModelTrainerTAG(model)
-        elif args.dataset in ["fed_shakespeare", "stackoverflow_nwp"]:
+        elif args.dataset_name in ["fed_shakespeare", "stackoverflow_nwp"]:
             model_trainer = MyModelTrainerNWP(model)
         else:  # default model trainer is for classification problem
             model_trainer = MyModelTrainerCLS(model)
@@ -62,9 +62,9 @@ def init_client(args, device, comm, process_id, size, model, train_data_num, tra
                 train_data_local_dict, test_data_local_dict, model_trainer=None):
     client_index = process_id - 1
     if model_trainer is None:
-        if args.dataset == "stackoverflow_lr":
+        if args.dataset_name == "stackoverflow_lr":
             model_trainer = MyModelTrainerTAG(model)
-        elif args.dataset in ["fed_shakespeare", "stackoverflow_nwp"]:
+        elif args.dataset_name in ["fed_shakespeare", "stackoverflow_nwp"]:
             model_trainer = MyModelTrainerNWP(model)
         else:  # default model trainer is for classification problem
             model_trainer = MyModelTrainerCLS(model)
