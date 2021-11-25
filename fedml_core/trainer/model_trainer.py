@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-
-from dataclasses import dataclass
 from typing import Optional
 
+from attr import attrs
 
-@dataclass
+
+@attrs(auto_attribs=True, cmp=False, kw_only=True)
 class RunConfig:
     # Dataset config
     dataset_name: str
@@ -13,7 +13,6 @@ class RunConfig:
     # Federated config
     client_num_in_total: int
     client_num_per_round: int
-    backend: Optional[str]
     is_mobile: bool
     gpu_server_num: int
     gpu_num_per_server: int
@@ -25,11 +24,16 @@ class RunConfig:
     batch_size: int
     epochs: int
     comm_round: int
-    frequency_of_the_test: Optional[int]
+    frequency_of_the_test: Optional[int] = None
     ci: bool
 
+    # Communication_config
+    communication_method: str
+    communication_host: Optional[str] = None
+    communication_port: Optional[int] = None
 
-@dataclass
+
+@attrs(auto_attribs=True, cmp=False, kw_only=True)
 class CentralizedRunConfig(RunConfig):
     data_parallel: bool
     frequency_of_train_acc_report: int

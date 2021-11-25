@@ -10,28 +10,23 @@ from ..communication.trpc.trpc_comm_manager import TRPCCommManager
 
 
 class ServerManager(Observer):
-    def __init__(self, comm=None, rank=0, size=0, backend="MPI", grpc_ipconfig_path=None, trpc_master_config_path=None):
-        self._validate_backend(backend)
-
+    def __init__(self, conf, comm=None, rank=0, size=0, grpc_ipconfig_path=None, trpc_master_config_path=None):
         self.size = size
         self.rank = rank
-        self.backend = backend
+        self.backend = conf.communication_method
 
-        if backend == "MQTT":
-            self.com_manager = MqttCommManager("0.0.0.0", 1883, client_id=rank, client_num=size - 1)
-        elif backend == "GRPC":
-            self.com_manager = GRPCCommManager("0.0.0.0", 50000 + rank, ip_config_path=grpc_ipconfig_path,
-                                               client_id=rank, client_num=size - 1)
-        elif backend == "TRPC":
+        if self.backend == "MQTT":
+            self.com_manager = MqttCommManager(
+                conf.communication_host, conf.communication_port, client_id=rank, client_num=size - 1)
+        elif self.backend == "GRPC":
+            self.com_manager = GRPCCommManager(conf.communication_host, conf.communication_port + rank,
+                                               ip_config_path=grpc_ipconfig_path, client_id=rank, client_num=size - 1)
+        elif self.backend == "TRPC":
             self.com_manager = TRPCCommManager(trpc_master_config_path, process_id=rank, world_size=size)
         else:
             self.com_manager = MpiCommunicationManager(comm, rank, size, node_type="server")
         self.com_manager.add_observer(self)
         self.message_handler_dict = dict()
-
-    @staticmethod
-    def _validate_backend(backend):
-        assert backend in {"MPI", "MQTT", "GRPC", "TRPC"}
 
     def run(self):
         self.register_message_receive_handlers()

@@ -12,25 +12,22 @@ from ..communication.trpc.trpc_comm_manager import TRPCCommManager
 
 
 class ClientManager(Observer):
-    def __init__(self, args, comm=None, rank=0, size=0, backend="MPI"):
+    def __init__(self, args, comm=None, rank=0, size=0):
         self.args = args
         self.size = size
         self.rank = rank
-        self.backend = backend
-        if backend == "MPI":
+        self.backend = args.communication_method
+        if args.communication_method == "MPI":
             self.com_manager = MpiCommunicationManager(comm, rank, size, node_type="client")
-        elif backend == "MQTT":
-            HOST = "0.0.0.0"
-            # HOST = "broker.emqx.io"
-            PORT = 1883
-            self.com_manager = MqttCommManager(HOST, PORT, client_id=rank, client_num=size - 1)
-        elif backend == "GRPC":
-            HOST = "0.0.0.0"
-            PORT = 50000 + rank
+        elif args.communication_method == "MQTT":
+            self.com_manager = MqttCommManager(
+                args.communication_host, args.communication_port, client_id=rank, client_num=size - 1)
+        elif args.communication_method == "GRPC":
             self.com_manager = GRPCCommManager(
-                HOST, PORT, ip_config_path=args.grpc_ipconfig_path, client_id=rank, client_num=size - 1
+                args.communication_host, args.communication_port + rank, ip_config_path=args.grpc_ipconfig_path,
+                client_id=rank, client_num=size - 1
             )
-        elif backend == "TRPC":
+        elif args.communication_method == "TRPC":
             self.com_manager = TRPCCommManager(args.trpc_master_config_path, process_id=rank, world_size=size)
         else:
             self.com_manager = MpiCommunicationManager(comm, rank, size, node_type="client")

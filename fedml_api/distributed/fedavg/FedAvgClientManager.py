@@ -7,8 +7,8 @@ from .utils import transform_list_to_tensor
 
 
 class FedAVGClientManager(ClientManager):
-    def __init__(self, args, trainer, comm=None, rank=0, size=0, backend="MPI"):
-        super().__init__(args, comm, rank, size, backend)
+    def __init__(self, args, trainer, comm=None, rank=0, size=0):
+        super().__init__(args, comm, rank, size)
         self.trainer = trainer
         self.num_rounds = args.comm_round
         self.round_idx = 0

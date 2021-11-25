@@ -1,7 +1,6 @@
 import ctypes
 import logging
 import threading
-import traceback
 
 from ..message import Message
 
@@ -24,8 +23,8 @@ class MPIReceiveThread(threading.Thread):
                 msg = Message()
                 msg.init(msg_str)
                 self.q.put(msg)
-            except Exception:
-                traceback.print_exc()
+            except Exception as e:
+                logging.exception(f'Exception from MPIReceiveThread: {e}')
 
     def stop(self):
         self._stop_event.set()

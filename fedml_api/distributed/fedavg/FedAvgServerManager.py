@@ -8,9 +8,9 @@ from .utils import transform_tensor_to_list
 
 
 class FedAVGServerManager(ServerManager):
-    def __init__(self, aggregator, config: RunConfig, comm=None, rank=0, size=0, backend="MPI", is_preprocessed=False,
+    def __init__(self, aggregator, config: RunConfig, comm=None, rank=0, size=0, is_preprocessed=False,
                  preprocessed_client_lists=None, grpc_ipconfig_path=None, trpc_master_config_path=None):
-        super().__init__(comm, rank, size, backend, grpc_ipconfig_path, trpc_master_config_path)
+        super().__init__(config, comm, rank, size, grpc_ipconfig_path, trpc_master_config_path)
         self.aggregator = aggregator
         self.config = config
         self.round_idx = 0
