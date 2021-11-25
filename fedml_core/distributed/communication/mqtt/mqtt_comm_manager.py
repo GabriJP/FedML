@@ -55,7 +55,7 @@ class MqttCommManager(BaseCommunicationManager):
             receiving message topic (subscribe): serverID_clientID
 
         """
-        logging.info(f"Connection returned with result code:{rc}")
+        logging.info(f"Connection returned with result code: {rc}")
         # subscribe one topic
         if self.client_id == 0:
             # server
@@ -76,10 +76,10 @@ class MqttCommManager(BaseCommunicationManager):
 
     @staticmethod
     def _on_disconnect(client, userdata, rc):
-        logging.info(f"Disconnection returned result:{rc}")
+        logging.info(f"Disconnection returned result: {rc}")
 
     def _on_subscribe(self, client, userdata, mid, granted_qos):
-        logging.info(f"onSubscribe :{mid}")
+        logging.info(f"onSubscribe: {mid}")
         self._unacked_sub.remove(mid)
 
     def add_observer(self, observer: Observer):

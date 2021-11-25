@@ -42,12 +42,12 @@ class FedAVGTrainer:
     def test(self):
         # train data
         train_metrics = self.trainer.test(self.train_local, self.device)
-        train_tot_correct, train_num_sample, train_loss = train_metrics['test_correct'], \
-                                                          train_metrics['test_total'], train_metrics['test_loss']
+        train_tot_correct, train_num_sample, train_loss = train_metrics['test_correct'], train_metrics['test_total'], \
+                                                          train_metrics['test_loss']
 
         # test data
         test_metrics = self.trainer.test(self.test_local, self.device)
-        test_tot_correct, test_num_sample, test_loss = test_metrics['test_correct'], \
-                                                       test_metrics['test_total'], test_metrics['test_loss']
+        test_tot_correct, test_num_sample, test_loss = test_metrics['test_correct'], test_metrics['test_total'], \
+                                                       test_metrics['test_loss']
 
         return train_tot_correct, train_loss, train_num_sample, test_tot_correct, test_loss, test_num_sample
