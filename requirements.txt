@@ -16,3 +16,4 @@ Celery==4.4.7
 dill==0.3.3
 protobuf
 grpcio
+ujson
