@@ -31,6 +31,7 @@ class MqttCommManager(BaseCommunicationManager):
         self._client.connect(host, port)
         self._client.loop_start()
         # self._client.loop_forever()
+        self._client.enable_logger()
 
     def __del__(self):
         self._client.loop_stop()
@@ -89,7 +90,7 @@ class MqttCommManager(BaseCommunicationManager):
         self._observers.remove(observer)
 
     def _notify(self, msg):
-        # print("_notify: " + msg)
+        logging.debug(f"_notify: {msg}")
         msg_params = Message()
         msg_params.init_from_json_string(str(msg))
         msg_type = msg_params.get_type()
@@ -114,7 +115,7 @@ class MqttCommManager(BaseCommunicationManager):
             logging.info(f"topic = {topic}")
             payload = msg.to_json()
             self._client.publish(topic, payload=payload)
-            logging.info("sent")
+            logging.info("Message sent")
         else:
             # client
             self._client.publish(f"{self._topic}{self.client_id}", payload=msg.to_json())

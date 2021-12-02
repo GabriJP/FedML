@@ -48,7 +48,7 @@ class FedAVGServerManager(ServerManager):
             if self.round_idx == self.config.comm_round:
                 # post_complete_message_to_sweep_process(self.args)
                 self.finish()
-                print('here')
+                logging.info('Finishing server manager')
                 return
             if self.is_preprocessed:
                 if self.preprocessed_client_lists is None:
@@ -61,8 +61,8 @@ class FedAVGServerManager(ServerManager):
                 client_indexes = self.aggregator.client_sampling(self.round_idx, self.config.client_num_in_total,
                                                                  self.config.client_num_per_round)
 
-            print(f'indexes of clients: {client_indexes}')
-            print(f"size = {self.size:d}")
+            logging.info(f'indexes of clients: {client_indexes}')
+            logging.info(f'size = {self.size:d}')
             if self.config.is_mobile:
                 global_model_params = transform_tensor_to_list(global_model_params)
 
