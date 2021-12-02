@@ -1,10 +1,12 @@
-import json
 import logging
 import os
-from typing import List, Tuple, Any
+import time
+from typing import List, Tuple
 
 import numpy as np
 import torch
+from torch import Tensor
+from ujson import load as load_json
 
 from ..base import DataLoader, LocalDataset
 
@@ -29,35 +31,32 @@ class MNISTDataLoader(DataLoader):
             train_data: dictionary of train data
             test_data: dictionary of test data
         """
-        clients = list()
+        start_time = time.perf_counter()
         groups = list()
         train_data = dict()
         test_data = dict()
 
-        train_files = os.listdir(train_data_dir)
-        train_files = [f for f in train_files if f.endswith('.json')]
-        for f in train_files:
+        for f in (file for file in os.listdir(train_data_dir) if file.endswith('.json')):
             file_path = os.path.join(train_data_dir, f)
-            with open(file_path, 'r') as inf:
-                cdata = json.load(inf)
-            clients.extend(cdata['users'])
+            with open(file_path, 'r') as fd:
+                cdata = load_json(fd)
             if 'hierarchies' in cdata:
                 groups.extend(cdata['hierarchies'])
             train_data.update(cdata['user_data'])
 
-        test_files = os.listdir(test_data_dir)
-        test_files = [f for f in test_files if f.endswith('.json')]
-        for f in test_files:
+        for f in (file for file in os.listdir(test_data_dir) if file.endswith('.json')):
             file_path = os.path.join(test_data_dir, f)
-            with open(file_path, 'r') as inf:
-                cdata = json.load(inf)
+            with open(file_path, 'r') as fd:
+                cdata = load_json(fd)
             test_data.update(cdata['user_data'])
 
         clients = sorted(cdata['users'])
 
+        logging.info(f'Time spent reading MNIST JSONs: {time.perf_counter() - start_time}')
+
         return clients, groups, train_data, test_data
 
-    def batch_data(self, data, batch_size) -> List[Tuple[Any, Any]]:
+    def batch_data(self, data, batch_size) -> List[Tuple[Tensor, Tensor]]:
         """
         data is a dict := {'x': [numpy array], 'y': [numpy array]} (on one client)
         returns x, y, which are both numpy array of length: batch_size
@@ -117,8 +116,8 @@ class MNISTDataLoader(DataLoader):
             # index using client index
             train_data_local_dict[client_idx] = train_batch
             test_data_local_dict[client_idx] = test_batch
-            train_data_global.append(train_batch)
-            test_data_global.append(test_batch)
+            train_data_global.extend(train_batch)
+            test_data_global.extend(test_batch)
         logging.info("finished the loading data")
 
         return LocalDataset(

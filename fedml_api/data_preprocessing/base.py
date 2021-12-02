@@ -1,20 +1,21 @@
 import logging
 from abc import ABC
-from typing import Optional, Tuple, Dict, List, Callable, Type, ClassVar, Union, Any
+from typing import Optional, Tuple, Dict, List, Callable, Type, ClassVar, Union
 
 import numpy as np
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
 from attr import attrs
+from torch import Tensor
 from torch.utils.data import DataLoader as tDataLoader, Dataset as tDataset
 from torchvision.datasets import CIFAR10
 
 
 @attrs(auto_attribs=True, kw_only=True, cmp=False)
 class Dataset:
-    train_data_global: Union[tDataLoader, List]
-    test_data_global: Union[tDataLoader, List]
+    train_data_global: Union[tDataLoader, List[Tuple[Tensor, Tensor]]]
+    test_data_global: Union[tDataLoader, List[Tuple[Tensor, Tensor]]]
     train_data_num: Optional[int] = None
     test_data_num: Optional[int] = None
     output_len: Optional[int] = None
@@ -22,8 +23,8 @@ class Dataset:
 
 @attrs(auto_attribs=True, kw_only=True, cmp=False)
 class LocalDataset(Dataset):
-    train_data_local_dict: Union[Dict[int, tDataLoader], Dict[int, List[Tuple[Any, Any]]]]
-    test_data_local_dict: Union[Dict[int, tDataLoader], Dict[int, List[Tuple[Any, Any]]]]
+    train_data_local_dict: Union[Dict[int, tDataLoader], Dict[int, List[Tuple[Tensor, Tensor]]]]
+    test_data_local_dict: Union[Dict[int, tDataLoader], Dict[int, List[Tuple[Tensor, Tensor]]]]
     local_data_num_dict: Optional[object] = None
     train_data_local_num_dict: Optional[Dict[int, int]] = None
     client_num: Optional[int] = None
