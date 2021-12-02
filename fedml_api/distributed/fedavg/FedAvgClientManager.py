@@ -41,6 +41,8 @@ class FedAVGClientManager(ClientManager):
 
         if self.args.is_mobile == 1:
             model_params = transform_list_to_tensor(model_params)
+        else:
+            model_params = transform_list_to_tensor(model_params)
 
         self.trainer.update_model(model_params)
         self.trainer.update_dataset(int(client_index))

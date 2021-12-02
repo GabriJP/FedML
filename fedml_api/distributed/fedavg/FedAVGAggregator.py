@@ -1,7 +1,7 @@
 import copy
 import logging
 import random
-import time
+from time import perf_counter
 
 import numpy as np
 import torch
@@ -49,8 +49,7 @@ class FedAVGAggregator:
         return True
 
     def aggregate(self):
-        start_time = time.time()
-        model_list = []
+        model_list = list()
         training_num = 0
 
         for idx in range(self.worker_num):
@@ -59,29 +58,28 @@ class FedAVGAggregator:
             model_list.append((self.sample_num_dict[idx], self.model_dict[idx]))
             training_num += self.sample_num_dict[idx]
 
-        logging.info(f"len of self.model_dict[idx] = {len(self.model_dict)}")
+        logging.info(f"len of self.model_dict = {len(self.model_dict)}")
 
-        # logging.info("################aggregate: %d" % len(model_list))
-        num0, averaged_params = model_list[0]
-        for k in averaged_params.keys():
+        # logging.info(f"################aggregate: {len(model_list)}")
+        _, averaged_params = model_list[0]
+        for k in averaged_params:
             for i, model in enumerate(model_list):
                 local_sample_number, local_model_params = model
                 w = local_sample_number / training_num
                 if i == 0:
-                    averaged_params[k] = local_model_params[k] * w
+                    averaged_params[k] = torch.from_numpy(np.array(local_model_params[k])) * w
                 else:
-                    averaged_params[k] += local_model_params[k] * w
+                    averaged_params[k] += torch.from_numpy(np.array(local_model_params[k])) * w
 
         # update the global model which is cached at the server side
         self.set_global_model_params(averaged_params)
 
-        end_time = time.time()
-        logging.info(f"aggregate time cost: {end_time - start_time:d}")
+        end_time = perf_counter()
         return averaged_params
 
     def client_sampling(self, round_idx, client_num_in_total, client_num_per_round):
         if client_num_in_total == client_num_per_round:
-            client_indexes = [client_index for client_index in range(client_num_in_total)]
+            client_indexes = list(range(client_num_in_total))
         else:
             num_clients = min(client_num_per_round, client_num_in_total)
             np.random.seed(round_idx)  # make sure for each comparison, we are selecting the same clients each round
@@ -105,10 +103,10 @@ class FedAVGAggregator:
             return
 
         if round_idx % self.config.frequency_of_the_test == 0 or round_idx == self.config.comm_round - 1:
-            logging.info(f"################test_on_server_for_all_clients : {round_idx}")
-            train_num_samples = []
-            train_tot_corrects = []
-            train_losses = []
+            logging.info(f"################test_on_server_for_all_clients: {round_idx}")
+            train_num_samples = list()
+            train_tot_corrects = list()
+            train_losses = list()
             for client_idx in range(self.config.client_num_in_total):
                 # train data
                 metrics = self.trainer.test(self.dataset.train_data_local_dict[client_idx], self.device)
@@ -134,9 +132,9 @@ class FedAVGAggregator:
             logging.info(stats)
 
             # test data
-            test_num_samples = []
-            test_tot_corrects = []
-            test_losses = []
+            test_num_samples = list()
+            test_tot_corrects = list()
+            test_losses = list()
 
             if round_idx == self.config.comm_round - 1:
                 metrics = self.trainer.test(self.dataset.test_data_global, self.device)
