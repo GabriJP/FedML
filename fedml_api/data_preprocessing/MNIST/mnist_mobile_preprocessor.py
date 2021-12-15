@@ -1,15 +1,19 @@
 import json
 import os
 import shutil
-import sys
 from typing import List
 
 import click
 import numpy as np
-from attr import attrs
-from dataclasses import field
+from attr import attrs, ib
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../")))
+
+@attrs(auto_attribs=True)
+class Args:
+    client_num_per_round: int
+    comm_round: int
+    client_id: int
+    client_sample_list: List = ib(factory=list)
 
 
 def read_data(train_data_dir, test_data_dir, client_num_per_round, comm_round):
@@ -52,13 +56,6 @@ def read_data(train_data_dir, test_data_dir, client_num_per_round, comm_round):
             cdata = json.load(inf)
         test_num_samples.extend(cdata['num_samples'])
         test_data.update(cdata['user_data'])
-
-    @attrs(auto_attribs=True)
-    class Args:
-        client_num_per_round: int
-        comm_round: int
-        client_id: int
-        client_sample_list: List = field(default_factory=list)
 
     client_list = [Args(client_number, client_num_per_round, comm_round) for client_number in
                    range(client_num_per_round)]
